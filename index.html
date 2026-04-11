@@ -11,98 +11,100 @@
         
         body { 
             font-family: 'Inter', sans-serif;
-            transition: all 0.4s ease;
-            min-height: 100vh;
-            margin: 0;
+            background-color: #ffffff;
+            color: #1a1a1a;
+            transition: all 0.3s ease;
         }
         h1, h2, h3, .serif { font-family: 'Noto Serif SC', serif; }
 
-        /* 全局黑白风格 */
-        .theme-home { background: #000; color: #fff; }
-        .theme-wcca { background: #000; color: #fff; }
-        .theme-wadm { background: #fff; color: #000; }
-
+        /* 统一白底黑字风格 */
         .vibrant-input { 
-            border: 1px solid rgba(128,128,128,0.3); 
-            background: transparent; 
+            border: 1px solid #e5e5e5; 
+            background: #fafafa; 
             padding: 12px; 
             width: 100%; 
             outline: none; 
+            border-radius: 6px;
+            transition: border 0.3s;
+        }
+        .vibrant-input:focus { border-color: #000; background: #fff; }
+
+        .wadm-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .wadm-table th, .wadm-table td { border: 1px solid #eeeeee; padding: 12px; text-align: center; }
+        .editable-header { background: transparent; border: none; text-align: center; width: 100%; font-weight: bold; color: #000; }
+
+        .btn-action {
+            border: 1px solid #000;
+            padding: 10px 20px;
+            font-size: 13px;
+            transition: all 0.2s;
+            cursor: pointer;
+            background: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             border-radius: 4px;
         }
+        .btn-action:hover { background: #000; color: #fff; }
+        .btn-black { background: #000; color: #fff; }
+        .btn-black:hover { background: #333; }
+
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         
-        .theme-wcca .vibrant-input { color: #fff; border-color: #333; }
-        .theme-wadm .vibrant-input { color: #000; border-color: #ccc; }
-
-        /* 表格样式 */
-        .wadm-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .wadm-table th, .wadm-table td { border: 1px solid currentColor; padding: 12px; text-align: center; }
-        .editable-header { background: transparent; border: none; text-align: center; width: 100%; font-weight: bold; color: inherit; }
-
-        .btn-square {
-            border: 1px solid currentColor;
-            padding: 12px 24px;
-            font-size: 12px;
-            letter-spacing: 0.2em;
-            transition: all 0.3s;
-            display: inline-block;
-        }
-        .btn-square:hover { background: #fff; color: #000; }
-        .theme-wadm .btn-square:hover { background: #000; color: #fff; }
-
-        .fade-in { animation: fadeIn 0.5s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
-        .icon-heart { color: #ff4d4d; margin-right: 10px; }
-        .icon-balance { color: #4ade80; margin-right: 10px; }
+        .icon-heart { color: #ff4d4d; margin-right: 8px; }
+        .icon-balance { color: #4ade80; margin-right: 8px; }
     </style>
 </head>
-<body class="theme-home p-6 md:p-16">
+<body class="p-6 md:p-12">
 
-    <div class="max-w-5xl mx-auto">
-        <header class="flex justify-between items-start mb-20 fade-in">
-            <div id="navGroup">
-                <button id="backBtn" onclick="goHome()" class="hidden text-xs border-b border-current pb-1 opacity-70 hover:opacity-100 mb-4 block">← 返回首页</button>
-                <h1 class="text-3xl font-bold tracking-tighter">Safe-Logic</h1>
+    <div class="max-w-4xl mx-auto">
+        <header class="flex justify-between items-center mb-16 fade-in">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">Safe-Logic</h1>
+                <p class="text-[10px] uppercase tracking-[0.3em] text-gray-400 mt-1">智性决策与逻辑审计</p>
             </div>
-            <button onclick="alert('历史记录模块正在开发中...')" class="text-xs border border-current px-4 py-2 opacity-70 hover:opacity-100">历史记录</button>
+            <div class="flex gap-3">
+                <button onclick="showHistory()" class="text-xs border border-gray-200 px-4 py-2 hover:bg-gray-50 rounded">历史记录</button>
+            </div>
         </header>
 
-        <div id="homePage" class="grid grid-cols-1 md:grid-cols-2 gap-16 fade-in">
-            <div class="space-y-6">
-                <div class="flex items-center">
-                    <span class="icon-heart text-3xl">💔</span>
-                    <h2 class="text-3xl font-bold">WCCA 最坏情况审计</h2>
+        <div id="homePage" class="grid grid-cols-1 md:grid-cols-2 gap-8 fade-in">
+            <div class="p-8 border border-gray-100 rounded-lg hover:shadow-lg transition-all">
+                <div class="flex items-center mb-4">
+                    <span class="icon-heart">💔</span>
+                    <h2 class="text-xl font-bold italic">WCCA 最坏情况审计</h2>
                 </div>
-                <p class="text-sm opacity-60 leading-relaxed">面对不确定性，首先审计生存底线。剥离感性，直视最黑暗的假设。</p>
-                <button onclick="enterModule('WCCA')" class="btn-square">开始分析</button>
+                <p class="text-sm text-gray-500 mb-6 leading-relaxed">对单一决策进行压力测试。剥离感性幻想，直面生存底线与风险边界。</p>
+                <button onclick="enterModule('WCCA')" class="btn-action w-full">开始分析</button>
             </div>
-            <div class="space-y-6">
-                <div class="flex items-center">
-                    <span class="icon-balance text-3xl">⚖️</span>
-                    <h2 class="text-3xl font-bold">WADM 加权矩阵审计</h2>
+            <div class="p-8 border border-gray-100 rounded-lg hover:shadow-lg transition-all">
+                <div class="flex items-center mb-4">
+                    <span class="icon-balance">⚖️</span>
+                    <h2 class="text-xl font-bold italic">WADM 加权矩阵审计</h2>
                 </div>
-                <p class="text-sm opacity-60 leading-relaxed">多维加权数学模型。在复杂的利益博弈中，通过逻辑量化寻找最优解。</p>
-                <button onclick="enterModule('WADM')" class="btn-square">开始分析</button>
+                <p class="text-sm text-gray-500 mb-6 leading-relaxed">多维加权数学模型。通过量化影响因素，在复杂的利益博弈中定位最优解。</p>
+                <button onclick="enterModule('WADM')" class="btn-action w-full">开始分析</button>
             </div>
         </div>
 
         <div id="appPage" class="hidden fade-in">
+            <button onclick="goHome()" class="mb-8 text-xs text-gray-400 hover:text-black transition-all">← 返回首页</button>
             
-            <div id="wccaForm" class="hidden max-w-2xl mx-auto space-y-8">
-                <h3 class="serif text-xl opacity-80">审计对象：描述你的单一决策逻辑</h3>
-                <textarea id="wccaInput" class="vibrant-input h-48 serif text-lg" placeholder="在此输入决策内容..."></textarea>
+            <div id="wccaForm" class="hidden space-y-6">
+                <h3 class="serif text-lg">审计内容：请描述你的决策逻辑</h3>
+                <textarea id="wccaInput" class="vibrant-input h-40 serif" placeholder="例：准备投入30万积蓄在商场开设奶茶加盟店..."></textarea>
             </div>
 
             <div id="wadmForm" class="hidden space-y-6">
-                <div class="bg-gray-100 p-6 rounded-sm text-sm mb-6 leading-relaxed border-l-4 border-black">
-                    <strong>填写规则：</strong> 写出不同选择和影响选择的因素，在因素的括号内写上你认为的权重（1-10），在选项下方格子中填上对应因素在该选项中的得分（1-10分）。
+                <div class="text-xs bg-gray-50 p-4 border-l-2 border-black text-gray-600 mb-6">
+                    <strong>填写规则：</strong> 写出不同选择和影响因素。在因素后的括号内写上权重（1-10），在选项格内填入得分（1-10分）。点击选项标题可修改名称。
                 </div>
                 <div class="overflow-x-auto">
                     <table class="wadm-table" id="wadmTable">
                         <thead>
                             <tr id="tableHeader">
-                                <th class="w-1/3 italic">评估因素 (权重 1-10)</th>
+                                <th class="w-1/3 text-xs uppercase tracking-widest text-gray-400">评估因素 (权重)</th>
                                 <th><input class="editable-header" value="去深圳 (1-10分)"></th>
                                 <th><input class="editable-header" value="留本地 (1-10分)"></th>
                             </tr>
@@ -111,19 +113,35 @@
                     </table>
                 </div>
                 <div class="flex gap-4">
-                    <button onclick="addRow()" class="text-xs border border-current px-3 py-1">新增因素</button>
-                    <button onclick="addOption()" class="text-xs border border-current px-3 py-1">新增选项</button>
+                    <button onclick="addRow()" class="text-[10px] border border-gray-200 px-3 py-1 hover:bg-gray-50 uppercase">+ 增加因素</button>
+                    <button onclick="addOption()" class="text-[10px] border border-gray-200 px-3 py-1 hover:bg-gray-50 uppercase">+ 增加选项</button>
                 </div>
             </div>
 
-            <button onclick="execute()" id="execBtn" class="w-full mt-16 py-5 border border-current font-bold text-xs tracking-[0.4em] transition-all">执行决策审计</button>
+            <button onclick="execute()" id="execBtn" class="btn-action btn-black w-full mt-12 py-4 font-bold tracking-[0.2em]">执行决策审计</button>
 
-            <div id="resultArea" class="hidden mt-16 border-t border-current pt-12 pb-24">
-                <div id="resultContent" class="serif whitespace-pre-wrap leading-loose"></div>
-                <div id="chartSection" class="hidden mt-10 h-[400px]">
+            <div id="resultArea" class="hidden mt-12 fade-in border-t border-gray-100 pt-10">
+                <div id="resultContent" class="serif text-base leading-loose whitespace-pre-wrap mb-10 text-gray-800"></div>
+                
+                <div id="chartSection" class="hidden mb-10 h-64">
                     <canvas id="decisionChart"></canvas>
                 </div>
+
+                <div class="flex flex-wrap gap-4 border-t border-gray-50 pt-8 pb-20">
+                    <button onclick="saveToHistory()" class="btn-action text-xs">保存历史记录</button>
+                    <button onclick="copyToClipboard()" class="btn-action text-xs">分享给朋友</button>
+                    <button onclick="execute()" class="btn-action text-xs">再次分析</button>
+                    <button onclick="goHome()" class="btn-action text-xs bg-gray-50 border-gray-200">返回首页</button>
+                </div>
             </div>
+        </div>
+    </div>
+
+    <div id="historyModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white p-8 max-w-lg w-full max-h-[70vh] overflow-y-auto rounded shadow-xl">
+            <h3 class="font-bold mb-4">历史审计记录</h3>
+            <div id="historyList" class="space-y-4 text-sm text-gray-600 italic">暂无记录</div>
+            <button onclick="closeHistory()" class="mt-8 btn-action w-full">关闭</button>
         </div>
     </div>
 
@@ -132,26 +150,23 @@
         let currentModule = '';
         let optionCount = 2;
         let chartInstance = null;
+        let historyData = [];
 
         function enterModule(m) {
             currentModule = m;
-            document.body.className = m === 'WCCA' ? 'theme-wcca' : 'theme-wadm';
             document.getElementById('homePage').classList.add('hidden');
             document.getElementById('appPage').classList.remove('hidden');
-            document.getElementById('backBtn').classList.remove('hidden');
             document.getElementById('wccaForm').classList.toggle('hidden', m !== 'WCCA');
             document.getElementById('wadmForm').classList.toggle('hidden', m !== 'WADM');
+            document.getElementById('resultArea').classList.add('hidden');
             if(m === 'WADM' && document.getElementById('tableBody').children.length === 0) {
                 for(let i=0; i<3; i++) addRow();
             }
         }
 
         function goHome() {
-            document.body.className = 'theme-home';
             document.getElementById('homePage').classList.remove('hidden');
             document.getElementById('appPage').classList.add('hidden');
-            document.getElementById('backBtn').classList.add('hidden');
-            document.getElementById('resultArea').classList.add('hidden');
         }
 
         function addRow() {
@@ -178,17 +193,17 @@
 
         async function execute() {
             const btn = document.getElementById('execBtn');
-            const resArea = document.getElementById('resultArea');
             const resContent = document.getElementById('resultContent');
-            btn.innerText = "正在调用智性逻辑链路...";
+            const resArea = document.getElementById('resultArea');
+            
+            btn.innerText = "智性逻辑运算中...";
             btn.disabled = true;
 
             let prompt = "";
             let chartData = null;
 
             if(currentModule === 'WCCA') {
-                prompt = `对以下决策执行WCCA审计：${document.getElementById('wccaInput').value}。
-                要求：先详细说明最坏的结果（风险审计），再说明可能的好处。言简意赅，不使用任何特殊符号和表情，保持优雅黑白文风。`;
+                prompt = `对以下决策执行WCCA审计：${document.getElementById('wccaInput').value}。要求：1.先写最坏结果，再写好处。2.禁止出现任何 * # - ^ 等非正文符号。3.言简意赅。`;
             } else {
                 const rows = Array.from(document.getElementById('tableBody').children);
                 const opts = Array.from(document.querySelectorAll('.editable-header')).map(el => el.value);
@@ -196,15 +211,10 @@
                     const inputs = r.querySelectorAll('input');
                     return { name: inputs[0].value || "因素", weight: parseInt(inputs[1].value), scores: Array.from(inputs).slice(2).map(i => parseInt(i.value)) };
                 });
-
                 chartData = { labels: factors.map(f => f.name), datasets: opts.map((name, i) => ({
-                    label: name, data: factors.map(f => f.scores[i]),
-                    borderColor: i === 0 ? '#000' : '#888', backgroundColor: 'rgba(0,0,0,0.05)'
+                    label: name, data: factors.map(f => f.scores[i]), borderColor: '#000', backgroundColor: 'rgba(0,0,0,0.03)'
                 }))};
-
-                prompt = `执行WADM分析。因素及权重：${factors.map(f => f.name + '(' + f.weight + ')').join(', ')}。选项：${opts.join(', ')}。
-                数据明细：${JSON.stringify(factors)}。
-                要求：1.计算加权总分。2.根据分数给出推荐。3.提供基于大数据的深度总结建议。严禁表情和特殊排版符号。`;
+                prompt = `执行WADM分析。因素及权重：${factors.map(f => f.name + '(' + f.weight + ')').join(', ')}。选项：${opts.join(', ')}。要求：计算总分并给出建议，禁止使用任何 * # - ^ 等符号排版。`;
             }
 
             try {
@@ -218,12 +228,13 @@
                     })
                 });
                 const data = await response.json();
-                resContent.innerText = data.choices[0].message.content;
+                let cleanText = data.choices[0].message.content.replace(/[#*+\-_^]/g, ''); // 强制过滤
+                resContent.innerText = cleanText;
                 resArea.classList.remove('hidden');
                 if(currentModule === 'WADM' && chartData) renderChart(chartData);
                 resArea.scrollIntoView({ behavior: 'smooth' });
             } catch (e) {
-                resContent.innerText = "API 接入受阻，请检查网络或密钥有效性。";
+                resContent.innerText = "逻辑链路中断，请检查网络。";
                 resArea.classList.remove('hidden');
             } finally {
                 btn.innerText = "执行决策审计";
@@ -238,13 +249,34 @@
             chartInstance = new Chart(ctx, {
                 type: 'radar',
                 data: data,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: { r: { beginAtZero: true, max: 10, ticks: { display: false } } },
-                    plugins: { legend: { position: 'bottom' } }
-                }
+                options: { scales: { r: { beginAtZero: true, max: 10, ticks: { display: false } } }, plugins: { legend: { display: false } } }
             });
+        }
+
+        function copyToClipboard() {
+            const text = document.getElementById('resultContent').innerText;
+            navigator.clipboard.writeText(text + "\n\n—— 由 Safe-Logic 智性决策工具生成").then(() => alert("分析报告已复制，快去分享给朋友吧！"));
+        }
+
+        function saveToHistory() {
+            const res = document.getElementById('resultContent').innerText.substring(0, 50) + "...";
+            const date = new Date().toLocaleString();
+            historyData.push({ date, res });
+            alert("已保存至本地历史记录。");
+        }
+
+        function showHistory() {
+            const list = document.getElementById('historyList');
+            if(historyData.length === 0) {
+                list.innerText = "尚无历史记录。";
+            } else {
+                list.innerHTML = historyData.map(h => `<div class="p-3 border-b border-gray-100"><p class="text-[10px] text-gray-400">${h.date}</p><p>${h.res}</p></div>`).join('');
+            }
+            document.getElementById('historyModal').classList.remove('hidden');
+        }
+
+        function closeHistory() {
+            document.getElementById('historyModal').classList.add('hidden');
         }
     </script>
 </body>
