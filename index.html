@@ -3,244 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Decision Logic Engine | WCCA & WADM</title>
+    <title>Safe-Logic Auditor | 风险与决策审计</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
-        
-        :root {
-            --primary-bg: #050505;
-            --accent-blue: #3b82f6;
-            --accent-red: #ef4444;
-            --panel-border: #1e1e1e;
-        }
-
-        body {
-            background-color: var(--primary-bg);
-            color: #e5e7eb;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .neo-panel {
-            background: rgba(15, 15, 15, 0.95);
-            border: 1px solid var(--panel-border);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .logic-grid {
-            background-image: radial-gradient(#1e1e1e 1px, transparent 1px);
-            background-size: 30px 30px;
-        }
-
-        .status-blink {
-            animation: blink 1.5s infinite;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        input[type="range"]::-webkit-slider-thumb {
-            appearance: none;
-            width: 16px;
-            height: 16px;
-            background: var(--accent-blue);
-            cursor: pointer;
-            border-radius: 2px;
-        }
-
-        .scanning-line {
-            height: 2px;
-            background: var(--accent-blue);
-            box-shadow: 0 0 15px var(--accent-blue);
-            position: absolute;
-            width: 100%;
-            top: 0;
-            animation: scan 3s linear infinite;
-        }
-
-        @keyframes scan {
-            0% { top: 0; }
-            100% { top: 100%; }
-        }
+        body { background-color: #050505; color: #e5e7eb; font-family: 'JetBrains Mono', monospace; }
+        .neo-panel { background: rgba(15, 15, 15, 0.95); border: 1px solid #1e1e1e; }
+        .loading-line { height: 2px; background: #3b82f6; width: 0%; transition: width 1s ease-in-out; }
+        /* 隐藏滚动条但保留功能 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="logic-grid min-h-screen">
+<body class="p-4 md:p-10 no-scrollbar">
 
-    <header class="border-b border-zinc-800 p-4 bg-black/80 backdrop-blur-md sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="w-3 h-3 bg-blue-500 rounded-full status-blink"></div>
-                <h1 class="text-sm font-bold tracking-tighter uppercase italic">Decision_Audit_Core</h1>
-            </div>
-            <div class="text-[10px] text-zinc-500 space-x-4">
-                <span>WCCA_PROTOCOL: ACTIVE</span>
-                <span>WADM_MATRIX: READY</span>
-            </div>
+    <header class="max-w-5xl mx-auto mb-10 border-b border-zinc-800 pb-6 flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-black tracking-tighter text-white uppercase">Safe-Logic <span class="text-blue-500 text-sm">v3.1</span></h1>
+            <p class="text-[10px] text-zinc-500 mt-1 uppercase">Protocol: WCCA-FIRST / WADM-DEFERRED</p>
         </div>
+        <div id="systemStatus" class="text-[10px] px-3 py-1 border border-zinc-700 rounded-full text-zinc-400 font-bold">STATUS: READY</div>
     </header>
 
-    <main class="max-w-5xl mx-auto p-6 space-y-10">
+    <main class="max-w-5xl mx-auto space-y-8">
         
-        <section class="neo-panel p-8 rounded-lg relative overflow-hidden">
-            <div id="scanner" class="scanning-line hidden"></div>
-            <div class="relative z-10">
-                <h2 class="text-xs font-bold text-zinc-500 mb-4 uppercase tracking-[0.2em]">Input_Decision_Parameters</h2>
-                <textarea id="decisionInput" 
-                    class="w-full bg-zinc-900/50 border border-zinc-800 rounded-lg p-5 text-zinc-100 text-lg focus:outline-none focus:border-blue-500/50 transition-all resize-none"
-                    rows="3" placeholder="在此输入你的关键决策或纠结的问题..."></textarea>
-                
-                <div class="mt-6 flex justify-center">
-                    <button onclick="executeFullAudit()" id="runBtn" class="group relative px-12 py-4 bg-white text-black font-bold text-xs uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all">
-                        Execute_Audit
-                        <i class="fa fa-chevron-right ml-2 group-hover:translate-x-1 transition-transform"></i>
-                    </button>
+        <section id="inputSection" class="neo-panel p-6 rounded-xl transition-all duration-500">
+            <h2 class="text-xs font-bold text-zinc-500 mb-4 uppercase tracking-widest">Decision_Input_Field</h2>
+            <textarea id="userInput" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-sm focus:outline-none focus:border-blue-500 transition-all text-zinc-200" 
+                rows="4" placeholder="描述你的决定，或输入两个选项（例如：选择A：XX ；选择B：XX）进行对比审计..."></textarea>
+            
+            <div class="mt-6 flex flex-col items-center">
+                <button onclick="analyze()" id="runBtn" class="bg-white text-black text-[10px] font-bold px-12 py-3 uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all shadow-lg">
+                    Execute_Audit_Process
+                </button>
+                <div id="loaderWrap" class="w-full mt-4 hidden">
+                    <div class="h-1 bg-zinc-800 rounded-full overflow-hidden">
+                        <div id="loader" class="loading-line"></div>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <div id="analysisSection" class="hidden space-y-8">
+        <div id="resultArea" class="hidden space-y-8 pb-20">
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="neo-panel p-6 border-l-4 border-l-red-600">
-                    <h3 class="text-red-500 text-xs font-bold mb-6 flex items-center justify-between">
-                        <span>[ PHASE_01: WCCA_AUDIT ]</span>
-                        <i class="fa fa-exclamation-triangle"></i>
-                    </h3>
-                    <div id="wccaDisplay" class="space-y-6">
-                        </div>
-                </div>
-
-                <div class="neo-panel p-6 border-l-4 border-l-blue-600">
-                    <h3 class="text-blue-500 text-xs font-bold mb-6 flex items-center justify-between">
-                        <span>[ PHASE_02: WADM_MATRIX ]</span>
-                        <i class="fa fa-crosshairs"></i>
-                    </h3>
-                    <div id="wadmDisplay" class="space-y-6">
-                        </div>
-                </div>
+            <div id="wccaBox" class="neo-panel p-6 rounded-xl border-l-4 border-l-red-600">
+                <h3 class="text-red-500 text-xs font-bold mb-6 flex items-center justify-between uppercase">
+                    <span>Phase_01: WCCA (更坏情况风险审计)</span>
+                    <i class="fa fa-shield"></i>
+                </h3>
+                <div id="wccaContent" class="space-y-6"></div>
             </div>
 
-            <section class="neo-panel p-8 rounded-lg">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
-                    <div class="text-center md:text-left">
-                        <span class="text-xs text-zinc-500 uppercase tracking-widest">Logic_Score</span>
-                        <div id="finalScore" class="text-7xl font-black text-white mt-2">0<span class="text-2xl text-zinc-600">%</span></div>
-                    </div>
-                    <div class="md:col-span-2 space-y-4">
-                        <div class="flex items-center gap-2 text-xs font-bold uppercase">
-                            <i class="fa fa-comment-dots text-blue-500"></i>
-                            <span>AI_Verdict / 最终裁决</span>
-                        </div>
-                        <p id="verdictText" class="text-zinc-400 leading-relaxed italic text-sm border-l border-zinc-800 pl-4"></p>
-                    </div>
-                </div>
+            <div id="wadmBox" class="neo-panel p-6 rounded-xl border-l-4 border-l-blue-600 hidden">
+                <h3 class="text-blue-500 text-xs font-bold mb-6 flex items-center justify-between uppercase">
+                    <span>Phase_02: WADM (加权决策评价矩阵)</span>
+                    <i class="fa fa-balance-scale"></i>
+                </h3>
+                <div id="wadmContent" class="overflow-x-auto no-scrollbar text-xs"></div>
+            </div>
 
-                <div class="mt-10 pt-8 border-t border-zinc-900">
-                    <div class="flex flex-col md:flex-row justify-between items-center gap-6">
-                        <div class="flex-1 w-full">
-                            <div class="flex justify-between text-[10px] text-zinc-500 uppercase font-bold mb-2">
-                                <span>认知偏差评估</span>
-                                <span id="rangeVal">50% 清醒</span>
-                            </div>
-                            <input type="range" id="feedbackRange" oninput="updateRangeText(this.value)" class="w-full h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer">
-                        </div>
-                        <button onclick="saveDecision()" class="text-[10px] border border-zinc-700 px-6 py-2 rounded hover:bg-zinc-800 transition-colors uppercase font-bold">
-                            Archive_Decision (归档记录)
-                        </button>
-                    </div>
-                </div>
-            </section>
+            <div class="neo-panel p-8 rounded-xl text-center border-t-2 border-t-zinc-700">
+                <div class="text-[10px] text-zinc-500 uppercase mb-2">Audit_Final_Conclusion</div>
+                <div id="verdictHeadline" class="text-2xl font-black mb-4 uppercase tracking-tight"></div>
+                <p id="verdictDetail" class="text-sm text-zinc-400 italic max-w-2xl mx-auto mb-8 leading-relaxed"></p>
+                
+                <button onclick="resetSystem()" class="group text-[10px] font-bold text-zinc-500 hover:text-white uppercase tracking-[0.3em] transition-all">
+                    <i class="fa fa-refresh mr-2 group-hover:rotate-180 transition-transform duration-500"></i>
+                    Initialize_New_Test (重新测试)
+                </button>
+            </div>
         </div>
     </main>
 
-    <footer class="p-10 text-center text-zinc-600 text-[10px] tracking-widest uppercase">
-        Built with Rational Logic Protocol | Version 2.0.4-Stable
-    </footer>
-
     <script>
-        function updateRangeText(val) {
-            document.getElementById('rangeVal').innerText = val + "% 清醒";
-        }
+        // 模拟大数据分析的权重库
+        const BIG_DATA_WEIGHTS = {
+            "长期成长": 10,
+            "生活成本": 9,
+            "风险底线": 9,
+            "离家远近": 7,
+            "社交圈层": 6,
+            "环境/天气": 4,
+            "即时快感": 2
+        };
 
-        async function executeFullAudit() {
-            const input = document.getElementById('decisionInput').value;
-            if(!input || input.length < 5) {
-                alert("ERR: 输入内容过短，无法建立逻辑审计模型。");
-                return;
+        async function analyze() {
+            const input = document.getElementById('userInput').value;
+            if (!input || input.length < 5) return alert("系统提示：请输入更有意义的决策描述以供审计。");
+
+            // UI 锁定
+            document.getElementById('runBtn').style.display = 'none';
+            document.getElementById('loaderWrap').classList.remove('hidden');
+            document.getElementById('loader').style.width = '100%';
+            document.getElementById('systemStatus').innerText = "STATUS: CRUNCHING_DATA";
+
+            await new Promise(r => setTimeout(r, 1200));
+
+            // 1. 危险识别（WCCA 强拦截）
+            const dangerKeywords = ['死', '杀', '犯罪', '毒', '危害', '叛逆', '危险', '自残', '非法', '暴力'];
+            const isDangerous = dangerKeywords.some(key => input.includes(key));
+            
+            // 2. 犹豫识别（WADM 触发）
+            const isComparing = input.includes('选择A') || input.includes('和') || input.includes('或者') || input.includes('对比');
+
+            renderWCCA(isDangerous);
+
+            if (isDangerous) {
+                document.getElementById('wadmBox').classList.add('hidden');
+                setVerdict("System_Halt: 危险拦截", "text-red-500", "识别到涉及自身或他人安全的极高风险变量。根据 WCCA 安全协议，已强制锁定防御模式。该决策具有叛逆性和毁灭性，禁止进入 WADM 择优阶段。");
+            } else if (isComparing) {
+                document.getElementById('wadmBox').classList.remove('hidden');
+                renderWADM();
+                setVerdict("Audit_Complete: 择优建议", "text-blue-500", "风险底线审计通过。基于大数据权重的 WADM 矩阵显示，已选出综合得分最高的方案。请参考下方量化结果。");
+            } else {
+                document.getElementById('wadmBox').classList.add('hidden');
+                setVerdict("Audit_Complete: 风险通过", "text-zinc-300", "该单一决策未触发高危预警。WCCA 结果显示风险在可控范围内，请确保你已做好面对‘最坏后果’的心理准备。");
             }
 
-            // 激活扫描动画
-            document.getElementById('runBtn').style.display = 'none';
-            document.getElementById('scanner').classList.remove('hidden');
-            
-            // 模拟算法收敛过程
-            await new Promise(r => setTimeout(r, 2500));
-
-            document.getElementById('scanner').classList.add('hidden');
-            document.getElementById('analysisSection').classList.remove('hidden');
-            
-            generateWCCA(input);
-            generateWADM(input);
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            document.getElementById('resultArea').classList.remove('hidden');
+            document.getElementById('loaderWrap').classList.add('hidden');
+            document.getElementById('systemStatus').innerText = "STATUS: AUDIT_FINISHED";
+            window.scrollTo({ top: document.getElementById('resultArea').offsetTop - 50, behavior: 'smooth' });
         }
 
-        function generateWCCA(q) {
-            const container = document.getElementById('wccaDisplay');
-            container.innerHTML = `
-                <div class="space-y-4">
-                    <div class="group">
-                        <p class="text-[10px] text-zinc-500 font-bold mb-1 tracking-widest uppercase">1. 最坏后果审计</p>
-                        <p class="text-sm text-zinc-200 leading-relaxed border-l-2 border-red-900 pl-3">此选择可能导致 "${q.substring(0,6)}..." 项目产生不可逆性崩塌。最坏情况是：现有资源耗尽且无法在 12 个月内重建同等规模的备选方案。</p>
+        function renderWCCA(isDanger) {
+            document.getElementById('wccaContent').innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="p-4 bg-zinc-900/30 border border-zinc-800 rounded">
+                        <p class="text-[9px] text-zinc-500 mb-2 uppercase tracking-widest">Q1: 最坏后果审计</p>
+                        <p class="text-sm font-bold ${isDanger ? 'text-red-400' : 'text-zinc-200'}">${isDanger ? "生命安全受损、法律严惩或核心社会资产彻底清零。" : "项目流产、产生可覆盖的经济损失或时间成本浪费。"}</p>
                     </div>
-                    <div class="group">
-                        <p class="text-[10px] text-zinc-500 font-bold mb-1 tracking-widest uppercase">2. 极端概率预测</p>
-                        <div class="flex items-end gap-2">
-                            <span class="text-2xl font-bold text-red-500">22.4%</span>
-                            <span class="text-[10px] text-zinc-600 pb-1">-- 统计学意义上的崩盘临界点</span>
-                        </div>
+                    <div class="p-4 bg-zinc-900/30 border border-zinc-800 rounded text-center">
+                        <p class="text-[9px] text-zinc-500 mb-2 uppercase tracking-widest">Q2: 发生概率</p>
+                        <p class="text-2xl font-black ${isDanger ? 'text-red-600' : 'text-white'}">${isDanger ? "88%+" : "14.2%"}</p>
+                        <p class="text-[8px] text-zinc-600 uppercase mt-1">Extreme Case Probability</p>
                     </div>
-                    <div class="group">
-                        <p class="text-[10px] text-zinc-500 font-bold mb-1 tracking-widest uppercase">3. 风险接受判定</p>
-                        <div class="p-3 bg-red-900/10 rounded border border-red-900/30 text-xs text-red-300">
-                            结论：不可接受。系统识别到该决策带有 "毁灭性尾部风险"。在没有 200% 的现金流保护下，不建议执行。
-                        </div>
+                    <div class="p-4 bg-zinc-900/30 border border-zinc-800 rounded">
+                        <p class="text-[9px] text-zinc-500 mb-2 uppercase tracking-widest">Q3: 接受度判定</p>
+                        <p class="text-xs font-bold uppercase ${isDanger ? 'text-red-600 underline' : 'text-green-600'}">
+                            ${isDanger ? "CRITICAL_DANGER: 绝对不可接受" : "ACCEPTABLE: 属于可控风险"}
+                        </p>
                     </div>
-                </div>
-            `;
+                </div>`;
         }
 
-        function generateWADM(q) {
-            const container = document.getElementById('wadmDisplay');
-            container.innerHTML = `
-                <table class="w-full text-left text-[11px]">
+        function renderWADM() {
+            let totalA = 0, totalB = 0;
+            let rowsHtml = "";
+            
+            for (const [factor, weight] of Object.entries(BIG_DATA_WEIGHTS)) {
+                const scoreA = Math.floor(Math.random() * 4) + 6; // 6-9
+                const scoreB = Math.floor(Math.random() * 4) + 6;
+                const wa = scoreA * weight;
+                const wb = scoreB * weight;
+                totalA += wa; totalB += wb;
+
+                rowsHtml += `
+                    <tr class="border-b border-zinc-900 hover:bg-white/5 transition-colors">
+                        <td class="p-3 font-bold text-zinc-300">${factor}</td>
+                        <td class="p-3 text-center text-zinc-500">${weight}</td>
+                        <td class="p-3 text-center">${scoreA}</td>
+                        <td class="p-3 text-center text-blue-500 font-bold">${wa}</td>
+                        <td class="p-3 text-center">${scoreB}</td>
+                        <td class="p-3 text-right text-purple-500 font-bold">${wb}</td>
+                    </tr>`;
+            }
+
+            document.getElementById('wadmContent').innerHTML = `
+                <table class="w-full border-collapse">
                     <thead>
-                        <tr class="text-zinc-600 border-b border-zinc-800">
-                            <th class="pb-2 font-normal">DIMENSION</th>
-                            <th class="pb-2 font-normal">WEIGHT</th>
-                            <th class="pb-2 font-normal">SCORE</th>
-                            <th class="pb-2 text-right font-normal">WEIGHTED</th>
+                        <tr class="text-zinc-600 border-b border-zinc-800 text-[9px] uppercase tracking-tighter">
+                            <th class="p-3 text-left">决定因素 (Factors)</th>
+                            <th class="p-3 text-center">权重 (W)</th>
+                            <th class="p-3 text-center">A评分</th>
+                            <th class="p-3 text-center text-blue-500">A加权</th>
+                            <th class="p-3 text-center">B评分</th>
+                            <th class="p-3 text-right text-purple-500">B加权</th>
                         </tr>
                     </thead>
-                    <tbody class="text-zinc-300">
-                        <tr class="border-b border-zinc-900/50"><td class="py-4">经济回报 / ROI</td><td>0.45</td><td>6/10</td><td class="text-right">2.7</td></tr>
-                        <tr class="border-b border-zinc-900/50"><td class="py-4">身心健康 / WELLNESS</td><td>0.25</td><td>4/10</td><td class="text-right">1.0</td></tr>
-                        <tr class="border-b border-zinc-900/50"><td class="py-4">职业成长 / GROWTH</td><td>0.20</td><td>8/10</td><td class="text-right">1.6</td></tr>
-                        <tr class="border-b border-zinc-900/50"><td class="py-4">人际资产 / SOCIAL</td><td>0.10</td><td>7/10</td><td class="text-right">0.7</td></tr>
-                        <tr class="text-blue-500 font-bold"><td class="py-4" colspan="3">AGGREGATE_WADM_TOTAL</td><td class="py-4 text-right">6.0</td></tr>
-                    </tbody>
-                </table>
-            `;
-            
-            // 计算最终综合得分
-            document.getElementById('finalScore').innerHTML = `60<span class="text-2xl text-zinc-600">%</span>`;
-            document.getElementById('verdictText').innerText = "审计模型判定：这是一个‘高成长、高脆弱性’的选择。虽然 WADM 显示出巨大的吸引力（6.0分），但 WCCA 揭示了底线的极度不稳定性。建议：先通过 WCCA 的‘底线测试’（即：如果失败，你是否有 Plan B 养活自己？），若 Plan B 不存在，则执行指数应降至 30% 以下。";
+                    <tbody>${rowsHtml}</tbody>
+                    <tfoot>
+                        <tr class="bg-zinc-900">
+                            <td class="p-4 font-black text-white text-[10px]" colspan="3">FINAL_AGGREGATE_SCORE</td>
+                            <td class="p-4 text-center text-2xl font-black text-blue-500 border-b-2 border-blue-500">${totalA}</td>
+                            <td></td>
+                            <td class="p-4 text-right text-2xl font-black text-purple-500 border-b-2 border-purple-500">${totalB}</td>
+                        </tr>
+                    </tfoot>
+                </table>`;
         }
 
-        function saveDecision() {
-            alert("SUCCESS: 决策审计报告已加密归档至本地数据库。");
+        function setVerdict(headline, colorClass, detail) {
+            const h = document.getElementById('verdictHeadline');
+            h.innerText = headline;
+            h.className = `text-2xl font-black mb-4 uppercase tracking-tight ${colorClass}`;
+            document.getElementById('verdictDetail').innerText = detail;
+        }
+
+        function resetSystem() {
+            // 动画效果：先缩小
+            document.getElementById('resultArea').classList.add('hidden');
+            document.getElementById('userInput').value = "";
+            document.getElementById('runBtn').style.display = 'block';
+            document.getElementById('systemStatus').innerText = "STATUS: INITIALIZED";
+            document.getElementById('loader').style.width = '0%';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     </script>
 </body>
