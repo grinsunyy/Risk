@@ -23,7 +23,6 @@
         .btn-action:hover { background: #000; color: #fff; }
         .btn-black { background: #000; color: #fff; }
 
-        /* WCCA 结果色彩 */
         .wcca-bad { color: #ef4444; font-weight: 600; }
         .wcca-good { color: #22c55e; font-weight: 600; }
         .wcca-summary { color: #000000; font-weight: 800; border-top: 1px solid #eee; padding-top: 15px; margin-top: 15px; }
@@ -61,7 +60,7 @@
             
             <div id="wccaForm" class="hidden space-y-6">
                 <h3 class="serif text-xl">审计内容：请描述你的决策逻辑</h3>
-                <textarea id="wccaInput" class="vibrant-input h-44 serif text-lg" placeholder="例：准备辞掉稳定的公务员工作去北京做自媒体..."></textarea>
+                <textarea id="wccaInput" class="vibrant-input h-44 serif text-lg" placeholder="在此输入你的决策问题..."></textarea>
             </div>
 
             <div id="wadmForm" class="hidden space-y-6">
@@ -91,7 +90,6 @@
 
                 <div class="flex flex-wrap gap-4 pt-10 border-t border-gray-100 pb-24">
                     <button onclick="saveToHistory()" class="btn-action text-xs">保存至历史记录库</button>
-                    <button onclick="copyToClipboard()" class="btn-action text-xs">生成分享简报</button>
                     <button onclick="resetAndRetry()" class="btn-action text-xs">再次分析 (清空重置)</button>
                     <button onclick="goHome()" class="btn-action text-xs bg-gray-100">返回首页</button>
                 </div>
@@ -101,7 +99,10 @@
 
     <div id="historyModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
         <div class="bg-white p-10 max-w-2xl w-full max-h-[85vh] overflow-y-auto rounded-lg shadow-2xl">
-            <h3 class="text-xl font-bold mb-6 border-b pb-4">Safe-Logic 历史审计库</h3>
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h3 class="text-xl font-bold">Safe-Logic 历史审计库</h3>
+                <button onclick="clearAllHistory()" class="text-xs text-red-500 hover:underline">清空所有记录</button>
+            </div>
             <div id="historyList" class="space-y-6"></div>
             <button onclick="closeHistory()" class="mt-10 btn-action btn-black w-full">关闭库</button>
         </div>
@@ -161,10 +162,7 @@
             let chartData = null;
 
             if(currentModule === 'WCCA') {
-                prompt = `对以下决策执行WCCA审计：${document.getElementById('wccaInput').value}。要求：
-                1. 明确标出【坏处】和【好处】。
-                2. 最后用“【大数据审计总结】”开头，给出一段客观的决策建议。
-                3. 禁止使用 * # - ^ 等非正文符号。`;
+                prompt = `对以下决策执行WCCA审计：${document.getElementById('wccaInput').value}。要求：1.明确标出【坏处】和【好处】。2.最后用“【大数据审计总结】”开头给出建议。3.禁止使用特殊符号。`;
             } else {
                 const rows = Array.from(document.getElementById('tableBody').children);
                 const opts = Array.from(document.querySelectorAll('.editable-header')).map(el => el.value);
@@ -175,8 +173,7 @@
                 chartData = { labels: factors.map(f => f.name), datasets: opts.map((name, i) => ({
                     label: name, data: factors.map(f => f.scores[i]), borderColor: '#000', backgroundColor: 'rgba(0,0,0,0.03)'
                 }))};
-                prompt = `执行WADM分析。数据：${JSON.stringify(factors)}。选项：${opts.join(', ')}。
-                要求：1.计算总分并排名。2.在结尾增加“【社会大数据选择模拟】”部分，分析面对这些因素时，大部分人的选择倾向及原因。3.禁止使用特殊符号。`;
+                prompt = `执行WADM分析。数据：${JSON.stringify(factors)}。选项：${opts.join(', ')}。要求：1.计算总分。2.增加“【社会大数据选择模拟】”。3.禁止符号。`;
             }
 
             try {
@@ -189,10 +186,7 @@
                 let rawText = data.choices[0].message.content.replace(/[#*+\-_^]/g, '');
                 
                 if(currentModule === 'WCCA') {
-                    // WCCA 色彩渲染逻辑
-                    let formatted = rawText.replace(/坏处/g, '<span class="wcca-bad">坏处</span>')
-                                           .replace(/好处/g, '<span class="wcca-good">好处</span>')
-                                           .replace(/【大数据审计总结】([\s\S]*)/g, '<div class="wcca-summary">【大数据审计总结】$1</div>');
+                    let formatted = rawText.replace(/坏处/g, '<span class="wcca-bad">坏处</span>').replace(/好处/g, '<span class="wcca-good">好处</span>').replace(/【大数据审计总结】([\s\S]*)/g, '<div class="wcca-summary">【大数据审计总结】$1</div>');
                     resContent.innerHTML = formatted;
                     document.getElementById('chartSection').classList.add('hidden');
                 } else {
@@ -202,7 +196,7 @@
                 resArea.classList.remove('hidden');
                 resArea.scrollIntoView({ behavior: 'smooth' });
             } catch (e) {
-                resContent.innerText = "逻辑链路中断。";
+                resContent.innerText = "链路中断。";
                 resArea.classList.remove('hidden');
             } finally {
                 btn.innerText = "执行决策审计"; btn.disabled = false;
@@ -220,20 +214,35 @@
             if(currentModule === 'WCCA') {
                 document.getElementById('wccaInput').value = "";
             } else {
-                const tableBody = document.getElementById('tableBody');
-                tableBody.innerHTML = "";
+                document.getElementById('tableBody').innerHTML = "";
                 for(let i=0; i<3; i++) addRow();
             }
             document.getElementById('resultArea').classList.add('hidden');
             window.scrollTo({top: 0, behavior: 'smooth'});
         }
 
+        // --- 核心历史记录逻辑更新 ---
         function saveToHistory() {
-            const content = document.getElementById('resultContent').innerHTML;
-            const title = currentModule + " 审计报告 - " + new Date().toLocaleString();
-            historyData.unshift({ title, content });
+            let userQuestion = "";
+            if(currentModule === 'WCCA') {
+                userQuestion = document.getElementById('wccaInput').value;
+            } else {
+                const opts = Array.from(document.querySelectorAll('.editable-header')).map(el => el.value).join(' vs ');
+                userQuestion = "WADM 决策对比: " + opts;
+            }
+
+            const resultHtml = document.getElementById('resultContent').innerHTML;
+            const date = new Date().toLocaleString();
+            
+            historyData.unshift({ 
+                date, 
+                module: currentModule,
+                question: userQuestion || "未描述审计对象", 
+                content: resultHtml 
+            });
+            
             localStorage.setItem('safeLogicHistory', JSON.stringify(historyData));
-            alert("报告已归档至历史记录库。");
+            alert("问题及审计结果已完整存入库。");
         }
 
         function showHistory() {
@@ -243,8 +252,12 @@
             } else {
                 list.innerHTML = historyData.map((h, i) => `
                     <div class="p-5 border border-gray-100 rounded hover:bg-gray-50 cursor-pointer transition-all" onclick="viewDetail(${i})">
-                        <p class="font-bold text-sm">${h.title}</p>
-                        <p class="text-[10px] text-gray-400 mt-2">点击查看详细审计内容 →</p>
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-[10px] bg-black text-white px-2 py-0.5 rounded">${h.module}</span>
+                            <span class="text-[10px] text-gray-400">${h.date}</span>
+                        </div>
+                        <p class="font-bold text-sm truncate">${h.question}</p>
+                        <p class="text-[10px] text-gray-400 mt-2">点击调取完整审计档案 →</p>
                     </div>
                 `).join('');
             }
@@ -254,16 +267,27 @@
         function viewDetail(index) {
             const item = historyData[index];
             document.getElementById('historyList').innerHTML = `
-                <button onclick="showHistory()" class="mb-4 text-xs text-blue-500">← 返回库列表</button>
-                <div class="serif leading-loose text-sm border-t pt-4">${item.content}</div>
+                <button onclick="showHistory()" class="mb-6 text-xs font-bold underline">← 返回档案列表</button>
+                <div class="mb-6">
+                    <p class="text-[10px] uppercase text-gray-400 mb-1">审计对象</p>
+                    <p class="font-bold border-l-2 border-black pl-3">${item.question}</p>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase text-gray-400 mb-2">审计结果</p>
+                    <div class="serif leading-loose text-sm p-4 bg-gray-50 rounded">${item.content}</div>
+                </div>
             `;
         }
 
-        function closeHistory() { document.getElementById('historyModal').classList.add('hidden'); }
-        function copyToClipboard() {
-            const text = document.getElementById('resultContent').innerText;
-            navigator.clipboard.writeText(text).then(() => alert("简报已复制。"));
+        function clearAllHistory() {
+            if(confirm("确定要销毁所有历史审计档案吗？此操作不可撤销。")) {
+                historyData = [];
+                localStorage.removeItem('safeLogicHistory');
+                showHistory();
+            }
         }
+
+        function closeHistory() { document.getElementById('historyModal').classList.add('hidden'); }
     </script>
 </body>
 </html>
