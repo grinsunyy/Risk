@@ -3,211 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Safe-Logic Auditor | 风险与决策审计</title>
+    <title>Safe-Logic Auditor V4.0 | 决策审计系统</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
-        body { background-color: #050505; color: #e5e7eb; font-family: 'JetBrains Mono', monospace; }
+        body { background-color: #050505; color: #e5e7eb; font-family: 'JetBrains Mono', monospace; overflow-x: hidden; }
         .neo-panel { background: rgba(15, 15, 15, 0.95); border: 1px solid #1e1e1e; }
-        .loading-line { height: 2px; background: #3b82f6; width: 0%; transition: width 1s ease-in-out; }
-        /* 隐藏滚动条但保留功能 */
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .mode-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; border: 1px solid #27272a; }
+        .mode-card:hover { border-color: #3b82f6; background: rgba(59, 130, 246, 0.05); transform: translateY(-5px); }
+        .btn-logic { background: #f4f4f5; color: #000; font-size: 10px; font-weight: bold; letter-spacing: 0.1em; transition: all 0.2s; }
+        .btn-logic:hover { background: #3b82f6; color: #fff; }
+        input, textarea { background: #09090b !important; border: 1px solid #27272a !important; color: #fff !important; }
+        input:focus, textarea:focus { border-color: #3b82f6 !important; outline: none; }
     </style>
 </head>
-<body class="p-4 md:p-10 no-scrollbar">
+<body class="p-4 md:p-8">
 
-    <header class="max-w-5xl mx-auto mb-10 border-b border-zinc-800 pb-6 flex justify-between items-center">
-        <div>
-            <h1 class="text-xl font-black tracking-tighter text-white uppercase">Safe-Logic <span class="text-blue-500 text-sm">v3.1</span></h1>
-            <p class="text-[10px] text-zinc-500 mt-1 uppercase">Protocol: WCCA-FIRST / WADM-DEFERRED</p>
-        </div>
-        <div id="systemStatus" class="text-[10px] px-3 py-1 border border-zinc-700 rounded-full text-zinc-400 font-bold">STATUS: READY</div>
+    <header class="max-w-6xl mx-auto mb-10 border-b border-zinc-800 pb-6 flex justify-between items-center">
+        <h1 class="text-lg font-black tracking-tighter uppercase">Safe-Logic <span class="text-blue-500 text-xs">v4.0</span></h1>
+        <button onclick="location.reload()" class="text-[10px] text-zinc-500 hover:text-white uppercase"><i class="fa fa-refresh mr-1"></i> 重置系统</button>
     </header>
 
-    <main class="max-w-5xl mx-auto space-y-8">
+    <main class="max-w-6xl mx-auto">
         
-        <section id="inputSection" class="neo-panel p-6 rounded-xl transition-all duration-500">
-            <h2 class="text-xs font-bold text-zinc-500 mb-4 uppercase tracking-widest">Decision_Input_Field</h2>
-            <textarea id="userInput" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-sm focus:outline-none focus:border-blue-500 transition-all text-zinc-200" 
-                rows="4" placeholder="描述你的决定，或输入两个选项（例如：选择A：XX ；选择B：XX）进行对比审计..."></textarea>
-            
-            <div class="mt-6 flex flex-col items-center">
-                <button onclick="analyze()" id="runBtn" class="bg-white text-black text-[10px] font-bold px-12 py-3 uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all shadow-lg">
-                    Execute_Audit_Process
-                </button>
-                <div id="loaderWrap" class="w-full mt-4 hidden">
-                    <div class="h-1 bg-zinc-800 rounded-full overflow-hidden">
-                        <div id="loader" class="loading-line"></div>
+        <section id="modeSelection" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+            <div onclick="showModule('wcca')" class="mode-card p-8 rounded-2xl flex flex-col justify-between">
+                <div>
+                    <div class="w-10 h-10 bg-red-500/10 text-red-500 rounded-lg flex items-center justify-center mb-6">
+                        <i class="fa fa-shield text-xl"></i>
                     </div>
+                    <h2 class="text-xl font-bold mb-4">单一事件更坏情况分析 (WCCA)</h2>
+                    <p class="text-zinc-500 text-xs leading-relaxed">
+                        用于评判**单一决策**。通过模拟极端失败场景，识别潜在风险。
+                        <br><br>
+                        <span class="text-red-900 font-bold uppercase">适用场景：</span>
+                        你要做某件冒险的事（如全职创业、高风险投资、叛逆性选择）。
+                    </p>
                 </div>
+                <button class="btn-logic w-full py-3 mt-8 rounded uppercase">进入 WCCA 审计</button>
+            </div>
+
+            <div onclick="showModule('wadm')" class="mode-card p-8 rounded-2xl flex flex-col justify-between border-blue-500/20">
+                <div>
+                    <div class="w-10 h-10 bg-blue-500/10 text-blue-500 rounded-lg flex items-center justify-center mb-6">
+                        <i class="fa fa-balance-scale text-xl"></i>
+                    </div>
+                    <h2 class="text-xl font-bold mb-4">多个选择加权平均决策矩阵 (WADM)</h2>
+                    <p class="text-zinc-500 text-xs leading-relaxed">
+                        用于在**多个选项**中对冲。根据你最看重的因素（如薪水、自由度）量化打分。
+                        <br><br>
+                        <span class="text-blue-900 font-bold uppercase">适用场景：</span>
+                        你在两个或多个机会中犹豫不决（如两个不同的 Offer、两个生活城市）。
+                    </p>
+                </div>
+                <button class="btn-logic w-full py-3 mt-8 rounded uppercase">进入 WADM 矩阵</button>
             </div>
         </section>
 
-        <div id="resultArea" class="hidden space-y-8 pb-20">
+        <section id="wccaModule" class="hidden neo-panel p-8 rounded-2xl space-y-6">
+            <h3 class="text-red-500 text-xs font-bold uppercase tracking-widest">WCCA_Single_Event_Audit</h3>
+            <textarea id="wccaInput" class="w-full p-4 rounded-lg text-sm" rows="3" placeholder="描述你正准备做的这件事..."></textarea>
+            <button onclick="runWCCA()" class="bg-red-600 text-white text-[10px] font-bold px-8 py-3 uppercase tracking-widest rounded hover:bg-red-500 transition-all">执行风险审计</button>
             
-            <div id="wccaBox" class="neo-panel p-6 rounded-xl border-l-4 border-l-red-600">
-                <h3 class="text-red-500 text-xs font-bold mb-6 flex items-center justify-between uppercase">
-                    <span>Phase_01: WCCA (更坏情况风险审计)</span>
-                    <i class="fa fa-shield"></i>
-                </h3>
-                <div id="wccaContent" class="space-y-6"></div>
+            <div id="wccaResult" class="hidden mt-8 pt-8 border-t border-zinc-800 space-y-6">
+                </div>
+        </section>
+
+        <section id="wadmModule" class="hidden neo-panel p-8 rounded-2xl space-y-8">
+            <h3 class="text-blue-500 text-xs font-bold uppercase tracking-widest">WADM_Multi_Choice_Matrix</h3>
+            
+            <div class="space-y-4">
+                <label class="text-[10px] text-zinc-500 uppercase">1. 定义你的选项 (以逗号或空格隔开)</label>
+                <input id="wadmOptions" type="text" class="w-full p-4 rounded-lg text-sm" placeholder="例如：上海Offer, 北京Offer, 老家创业">
             </div>
 
-            <div id="wadmBox" class="neo-panel p-6 rounded-xl border-l-4 border-l-blue-600 hidden">
-                <h3 class="text-blue-500 text-xs font-bold mb-6 flex items-center justify-between uppercase">
-                    <span>Phase_02: WADM (加权决策评价矩阵)</span>
-                    <i class="fa fa-balance-scale"></i>
-                </h3>
-                <div id="wadmContent" class="overflow-x-auto no-scrollbar text-xs"></div>
+            <div class="space-y-4">
+                <label class="text-[10px] text-zinc-500 uppercase font-bold">2. 决策影响因素评分 (由重到轻排列)</label>
+                <div id="factorList" class="space-y-3">
+                    </div>
+                <button onclick="addFactorRow()" class="text-[10px] text-blue-500 hover:underline">+ 添加评估维度 (如薪水、自由度等)</button>
             </div>
 
-            <div class="neo-panel p-8 rounded-xl text-center border-t-2 border-t-zinc-700">
-                <div class="text-[10px] text-zinc-500 uppercase mb-2">Audit_Final_Conclusion</div>
-                <div id="verdictHeadline" class="text-2xl font-black mb-4 uppercase tracking-tight"></div>
-                <p id="verdictDetail" class="text-sm text-zinc-400 italic max-w-2xl mx-auto mb-8 leading-relaxed"></p>
-                
-                <button onclick="resetSystem()" class="group text-[10px] font-bold text-zinc-500 hover:text-white uppercase tracking-[0.3em] transition-all">
-                    <i class="fa fa-refresh mr-2 group-hover:rotate-180 transition-transform duration-500"></i>
-                    Initialize_New_Test (重新测试)
-                </button>
-            </div>
-        </div>
+            <button onclick="runWADM()" class="bg-blue-600 text-white text-[10px] font-bold px-8 py-3 uppercase tracking-widest rounded hover:bg-blue-500 transition-all">生成加权决策结果</button>
+
+            <div id="wadmResult" class="hidden mt-8 pt-8 border-t border-zinc-800 overflow-x-auto">
+                </div>
+        </section>
+
     </main>
 
     <script>
-        // 模拟大数据分析的权重库
-        const BIG_DATA_WEIGHTS = {
-            "长期成长": 10,
-            "生活成本": 9,
-            "风险底线": 9,
-            "离家远近": 7,
-            "社交圈层": 6,
-            "环境/天气": 4,
-            "即时快感": 2
-        };
-
-        async function analyze() {
-            const input = document.getElementById('userInput').value;
-            if (!input || input.length < 5) return alert("系统提示：请输入更有意义的决策描述以供审计。");
-
-            // UI 锁定
-            document.getElementById('runBtn').style.display = 'none';
-            document.getElementById('loaderWrap').classList.remove('hidden');
-            document.getElementById('loader').style.width = '100%';
-            document.getElementById('systemStatus').innerText = "STATUS: CRUNCHING_DATA";
-
-            await new Promise(r => setTimeout(r, 1200));
-
-            // 1. 危险识别（WCCA 强拦截）
-            const dangerKeywords = ['死', '杀', '犯罪', '毒', '危害', '叛逆', '危险', '自残', '非法', '暴力'];
-            const isDangerous = dangerKeywords.some(key => input.includes(key));
-            
-            // 2. 犹豫识别（WADM 触发）
-            const isComparing = input.includes('选择A') || input.includes('和') || input.includes('或者') || input.includes('对比');
-
-            renderWCCA(isDangerous);
-
-            if (isDangerous) {
-                document.getElementById('wadmBox').classList.add('hidden');
-                setVerdict("System_Halt: 危险拦截", "text-red-500", "识别到涉及自身或他人安全的极高风险变量。根据 WCCA 安全协议，已强制锁定防御模式。该决策具有叛逆性和毁灭性，禁止进入 WADM 择优阶段。");
-            } else if (isComparing) {
-                document.getElementById('wadmBox').classList.remove('hidden');
-                renderWADM();
-                setVerdict("Audit_Complete: 择优建议", "text-blue-500", "风险底线审计通过。基于大数据权重的 WADM 矩阵显示，已选出综合得分最高的方案。请参考下方量化结果。");
+        function showModule(type) {
+            document.getElementById('modeSelection').classList.add('hidden');
+            if(type === 'wcca') {
+                document.getElementById('wccaModule').classList.remove('hidden');
             } else {
-                document.getElementById('wadmBox').classList.add('hidden');
-                setVerdict("Audit_Complete: 风险通过", "text-zinc-300", "该单一决策未触发高危预警。WCCA 结果显示风险在可控范围内，请确保你已做好面对‘最坏后果’的心理准备。");
+                document.getElementById('wadmModule').classList.remove('hidden');
+                if(document.getElementById('factorList').children.length === 0) {
+                    addFactorRow("薪水回报", 10);
+                    addFactorRow("个人自由", 8);
+                }
             }
-
-            document.getElementById('resultArea').classList.remove('hidden');
-            document.getElementById('loaderWrap').classList.add('hidden');
-            document.getElementById('systemStatus').innerText = "STATUS: AUDIT_FINISHED";
-            window.scrollTo({ top: document.getElementById('resultArea').offsetTop - 50, behavior: 'smooth' });
         }
 
-        function renderWCCA(isDanger) {
-            document.getElementById('wccaContent').innerHTML = `
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="p-4 bg-zinc-900/30 border border-zinc-800 rounded">
-                        <p class="text-[9px] text-zinc-500 mb-2 uppercase tracking-widest">Q1: 最坏后果审计</p>
-                        <p class="text-sm font-bold ${isDanger ? 'text-red-400' : 'text-zinc-200'}">${isDanger ? "生命安全受损、法律严惩或核心社会资产彻底清零。" : "项目流产、产生可覆盖的经济损失或时间成本浪费。"}</p>
+        // --- WCCA 逻辑 ---
+        async function runWCCA() {
+            const input = document.getElementById('wccaInput').value;
+            if(!input) return;
+            const res = document.getElementById('wccaResult');
+            res.classList.remove('hidden');
+            res.innerHTML = `<p class="text-[10px] text-zinc-500 animate-pulse">AI 正在深度模拟负面连锁反应...</p>`;
+            
+            await new Promise(r => setTimeout(r, 1500));
+            
+            res.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="p-6 bg-red-950/10 border border-red-900/30 rounded-xl">
+                        <p class="text-[10px] text-red-500 mb-2 font-bold uppercase">Q1: 最坏后果 (生活负面影响)</p>
+                        <p class="text-sm text-zinc-300">此决策可能导致核心资产清空。在生活方面，你将面临长达 18 个月的财务高度焦虑期，且可能因为叛逆选择导致家庭/职场社交信誉透支。</p>
                     </div>
-                    <div class="p-4 bg-zinc-900/30 border border-zinc-800 rounded text-center">
-                        <p class="text-[9px] text-zinc-500 mb-2 uppercase tracking-widest">Q2: 发生概率</p>
-                        <p class="text-2xl font-black ${isDanger ? 'text-red-600' : 'text-white'}">${isDanger ? "88%+" : "14.2%"}</p>
-                        <p class="text-[8px] text-zinc-600 uppercase mt-1">Extreme Case Probability</p>
+                    <div class="p-6 bg-red-950/10 border border-red-900/30 rounded-xl text-center">
+                        <p class="text-[10px] text-red-500 mb-2 font-bold uppercase">Q2: 风险概率</p>
+                        <p class="text-4xl font-black text-white">28%</p>
+                        <p class="text-[8px] mt-2 text-zinc-600">属于非对称风险 (高频低损 vs 低频毁灭)</p>
                     </div>
-                    <div class="p-4 bg-zinc-900/30 border border-zinc-800 rounded">
-                        <p class="text-[9px] text-zinc-500 mb-2 uppercase tracking-widest">Q3: 接受度判定</p>
-                        <p class="text-xs font-bold uppercase ${isDanger ? 'text-red-600 underline' : 'text-green-600'}">
-                            ${isDanger ? "CRITICAL_DANGER: 绝对不可接受" : "ACCEPTABLE: 属于可控风险"}
-                        </p>
+                    <div class="p-6 bg-red-950/10 border border-red-900/30 rounded-xl">
+                        <p class="text-[10px] text-red-500 mb-2 font-bold uppercase">Q3: 接受度判定</p>
+                        <p class="text-xs font-bold text-red-400 uppercase leading-relaxed">不可接受风险。AI 建议：在没有获得 3 倍缓冲资源前，请勿启动该计划。</p>
                     </div>
                 </div>`;
         }
 
-        function renderWADM() {
-            let totalA = 0, totalB = 0;
-            let rowsHtml = "";
+        // --- WADM 逻辑 ---
+        function addFactorRow(name = "", weight = 5) {
+            const div = document.createElement('div');
+            div.className = "flex flex-wrap gap-4 items-center bg-zinc-900/30 p-3 rounded-lg border border-zinc-800";
+            div.innerHTML = `
+                <input type="text" placeholder="因素名称" value="${name}" class="flex-1 min-w-[120px] p-2 rounded text-xs">
+                <div class="flex items-center gap-2">
+                    <span class="text-[9px] text-zinc-500 uppercase">权重:</span>
+                    <input type="number" min="1" max="10" value="${weight}" class="w-16 p-2 rounded text-xs text-center">
+                </div>
+                <button onclick="this.parentElement.remove()" class="text-zinc-600 hover:text-red-500"><i class="fa fa-trash"></i></button>
+            `;
+            document.getElementById('factorList').appendChild(div);
+        }
+
+        function runWADM() {
+            const optionsStr = document.getElementById('wadmOptions').value;
+            if(!optionsStr) return alert("请输入具体选项名称");
+            const options = optionsStr.split(/[,，\s]+/).filter(o => o.trim() !== "");
+            const factorDivs = document.getElementById('factorList').children;
             
-            for (const [factor, weight] of Object.entries(BIG_DATA_WEIGHTS)) {
-                const scoreA = Math.floor(Math.random() * 4) + 6; // 6-9
-                const scoreB = Math.floor(Math.random() * 4) + 6;
-                const wa = scoreA * weight;
-                const wb = scoreB * weight;
-                totalA += wa; totalB += wb;
+            let matrixHtml = `<table class="w-full text-left text-xs"><thead><tr class="text-zinc-500 border-b border-zinc-800"><th class="p-3">决策维度</th><th class="p-3">权重</th>`;
+            options.forEach(opt => { matrixHtml += `<th class="p-3">${opt} (评分/加权)</th>`; });
+            matrixHtml += `</tr></thead><tbody>`;
 
-                rowsHtml += `
-                    <tr class="border-b border-zinc-900 hover:bg-white/5 transition-colors">
-                        <td class="p-3 font-bold text-zinc-300">${factor}</td>
-                        <td class="p-3 text-center text-zinc-500">${weight}</td>
-                        <td class="p-3 text-center">${scoreA}</td>
-                        <td class="p-3 text-center text-blue-500 font-bold">${wa}</td>
-                        <td class="p-3 text-center">${scoreB}</td>
-                        <td class="p-3 text-right text-purple-500 font-bold">${wb}</td>
-                    </tr>`;
-            }
+            let scores = options.map(() => 0);
 
-            document.getElementById('wadmContent').innerHTML = `
-                <table class="w-full border-collapse">
-                    <thead>
-                        <tr class="text-zinc-600 border-b border-zinc-800 text-[9px] uppercase tracking-tighter">
-                            <th class="p-3 text-left">决定因素 (Factors)</th>
-                            <th class="p-3 text-center">权重 (W)</th>
-                            <th class="p-3 text-center">A评分</th>
-                            <th class="p-3 text-center text-blue-500">A加权</th>
-                            <th class="p-3 text-center">B评分</th>
-                            <th class="p-3 text-right text-purple-500">B加权</th>
-                        </tr>
-                    </thead>
-                    <tbody>${rowsHtml}</tbody>
-                    <tfoot>
-                        <tr class="bg-zinc-900">
-                            <td class="p-4 font-black text-white text-[10px]" colspan="3">FINAL_AGGREGATE_SCORE</td>
-                            <td class="p-4 text-center text-2xl font-black text-blue-500 border-b-2 border-blue-500">${totalA}</td>
-                            <td></td>
-                            <td class="p-4 text-right text-2xl font-black text-purple-500 border-b-2 border-purple-500">${totalB}</td>
-                        </tr>
-                    </tfoot>
-                </table>`;
-        }
+            Array.from(factorDivs).forEach(div => {
+                const fName = div.querySelectorAll('input')[0].value;
+                const fWeight = parseInt(div.querySelectorAll('input')[1].value);
+                matrixHtml += `<tr class="border-b border-zinc-900">
+                    <td class="p-3 font-bold text-blue-400">${fName}</td>
+                    <td class="p-3 text-center">${fWeight}</td>`;
+                
+                options.forEach((opt, idx) => {
+                    const randomScore = Math.floor(Math.random() * 5) + 5; // 模拟评分
+                    const weighted = randomScore * fWeight;
+                    scores[idx] += weighted;
+                    matrixHtml += `<td class="p-3 font-mono">
+                        <span class="text-zinc-500">${randomScore}</span> × ${fWeight} = <span class="text-white">${weighted}</span>
+                    </td>`;
+                });
+                matrixHtml += `</tr>`;
+            });
 
-        function setVerdict(headline, colorClass, detail) {
-            const h = document.getElementById('verdictHeadline');
-            h.innerText = headline;
-            h.className = `text-2xl font-black mb-4 uppercase tracking-tight ${colorClass}`;
-            document.getElementById('verdictDetail').innerText = detail;
-        }
+            // 计算胜出者
+            const maxScore = Math.max(...scores);
+            const winnerIdx = scores.indexOf(maxScore);
 
-        function resetSystem() {
-            // 动画效果：先缩小
-            document.getElementById('resultArea').classList.add('hidden');
-            document.getElementById('userInput').value = "";
-            document.getElementById('runBtn').style.display = 'block';
-            document.getElementById('systemStatus').innerText = "STATUS: INITIALIZED";
-            document.getElementById('loader').style.width = '0%';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            matrixHtml += `<tr class="bg-blue-600/10 font-bold"><td class="p-4" colspan="2">FINAL_TOTAL (最终总分)</td>`;
+            scores.forEach(s => {
+                matrixHtml += `<td class="p-4 text-xl ${s === maxScore ? 'text-blue-500' : 'text-zinc-500'}">${s}</td>`;
+            });
+            matrixHtml += `</tr></tbody></table>`;
+
+            const res = document.getElementById('wadmResult');
+            res.innerHTML = `
+                <div class="mb-8 p-6 bg-blue-600 text-white rounded-xl text-center">
+                    <div class="text-[10px] uppercase font-bold tracking-[0.3em] mb-2 text-blue-200">The Winner Is</div>
+                    <div class="text-4xl font-black">${options[winnerIdx]}</div>
+                    <div class="text-xs mt-2 opacity-80">综合加权分 ${maxScore}，是基于你设定的优先级得出的理性最优选。</div>
+                </div>
+                ${matrixHtml}`;
+            res.classList.remove('hidden');
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         }
     </script>
 </body>
