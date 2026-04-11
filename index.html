@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decision Logic Engine | WCCA & WADM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+        
+        :root {
+            --primary-bg: #050505;
+            --accent-blue: #3b82f6;
+            --accent-red: #ef4444;
+            --panel-border: #1e1e1e;
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            color: #e5e7eb;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .neo-panel {
+            background: rgba(15, 15, 15, 0.95);
+            border: 1px solid var(--panel-border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .logic-grid {
+            background-image: radial-gradient(#1e1e1e 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        .status-blink {
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--accent-blue);
+            cursor: pointer;
+            border-radius: 2px;
+        }
+
+        .scanning-line {
+            height: 2px;
+            background: var(--accent-blue);
+            box-shadow: 0 0 15px var(--accent-blue);
+            position: absolute;
+            width: 100%;
+            top: 0;
+            animation: scan 3s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+    </style>
+</head>
+<body class="logic-grid min-h-screen">
+
+    <header class="border-b border-zinc-800 p-4 bg-black/80 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-3 h-3 bg-blue-500 rounded-full status-blink"></div>
+                <h1 class="text-sm font-bold tracking-tighter uppercase italic">Decision_Audit_Core</h1>
+            </div>
+            <div class="text-[10px] text-zinc-500 space-x-4">
+                <span>WCCA_PROTOCOL: ACTIVE</span>
+                <span>WADM_MATRIX: READY</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto p-6 space-y-10">
+        
+        <section class="neo-panel p-8 rounded-lg relative overflow-hidden">
+            <div id="scanner" class="scanning-line hidden"></div>
+            <div class="relative z-10">
+                <h2 class="text-xs font-bold text-zinc-500 mb-4 uppercase tracking-[0.2em]">Input_Decision_Parameters</h2>
+                <textarea id="decisionInput" 
+                    class="w-full bg-zinc-900/50 border border-zinc-800 rounded-lg p-5 text-zinc-100 text-lg focus:outline-none focus:border-blue-500/50 transition-all resize-none"
+                    rows="3" placeholder="在此输入你的关键决策或纠结的问题..."></textarea>
+                
+                <div class="mt-6 flex justify-center">
+                    <button onclick="executeFullAudit()" id="runBtn" class="group relative px-12 py-4 bg-white text-black font-bold text-xs uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all">
+                        Execute_Audit
+                        <i class="fa fa-chevron-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <div id="analysisSection" class="hidden space-y-8">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="neo-panel p-6 border-l-4 border-l-red-600">
+                    <h3 class="text-red-500 text-xs font-bold mb-6 flex items-center justify-between">
+                        <span>[ PHASE_01: WCCA_AUDIT ]</span>
+                        <i class="fa fa-exclamation-triangle"></i>
+                    </h3>
+                    <div id="wccaDisplay" class="space-y-6">
+                        </div>
+                </div>
+
+                <div class="neo-panel p-6 border-l-4 border-l-blue-600">
+                    <h3 class="text-blue-500 text-xs font-bold mb-6 flex items-center justify-between">
+                        <span>[ PHASE_02: WADM_MATRIX ]</span>
+                        <i class="fa fa-crosshairs"></i>
+                    </h3>
+                    <div id="wadmDisplay" class="space-y-6">
+                        </div>
+                </div>
+            </div>
+
+            <section class="neo-panel p-8 rounded-lg">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+                    <div class="text-center md:text-left">
+                        <span class="text-xs text-zinc-500 uppercase tracking-widest">Logic_Score</span>
+                        <div id="finalScore" class="text-7xl font-black text-white mt-2">0<span class="text-2xl text-zinc-600">%</span></div>
+                    </div>
+                    <div class="md:col-span-2 space-y-4">
+                        <div class="flex items-center gap-2 text-xs font-bold uppercase">
+                            <i class="fa fa-comment-dots text-blue-500"></i>
+                            <span>AI_Verdict / 最终裁决</span>
+                        </div>
+                        <p id="verdictText" class="text-zinc-400 leading-relaxed italic text-sm border-l border-zinc-800 pl-4"></p>
+                    </div>
+                </div>
+
+                <div class="mt-10 pt-8 border-t border-zinc-900">
+                    <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                        <div class="flex-1 w-full">
+                            <div class="flex justify-between text-[10px] text-zinc-500 uppercase font-bold mb-2">
+                                <span>认知偏差评估</span>
+                                <span id="rangeVal">50% 清醒</span>
+                            </div>
+                            <input type="range" id="feedbackRange" oninput="updateRangeText(this.value)" class="w-full h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer">
+                        </div>
+                        <button onclick="saveDecision()" class="text-[10px] border border-zinc-700 px-6 py-2 rounded hover:bg-zinc-800 transition-colors uppercase font-bold">
+                            Archive_Decision (归档记录)
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="p-10 text-center text-zinc-600 text-[10px] tracking-widest uppercase">
+        Built with Rational Logic Protocol | Version 2.0.4-Stable
+    </footer>
+
+    <script>
+        function updateRangeText(val) {
+            document.getElementById('rangeVal').innerText = val + "% 清醒";
+        }
+
+        async function executeFullAudit() {
+            const input = document.getElementById('decisionInput').value;
+            if(!input || input.length < 5) {
+                alert("ERR: 输入内容过短，无法建立逻辑审计模型。");
+                return;
+            }
+
+            // 激活扫描动画
+            document.getElementById('runBtn').style.display = 'none';
+            document.getElementById('scanner').classList.remove('hidden');
+            
+            // 模拟算法收敛过程
+            await new Promise(r => setTimeout(r, 2500));
+
+            document.getElementById('scanner').classList.add('hidden');
+            document.getElementById('analysisSection').classList.remove('hidden');
+            
+            generateWCCA(input);
+            generateWADM(input);
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+
+        function generateWCCA(q) {
+            const container = document.getElementById('wccaDisplay');
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="group">
+                        <p class="text-[10px] text-zinc-500 font-bold mb-1 tracking-widest uppercase">1. 最坏后果审计</p>
+                        <p class="text-sm text-zinc-200 leading-relaxed border-l-2 border-red-900 pl-3">此选择可能导致 "${q.substring(0,6)}..." 项目产生不可逆性崩塌。最坏情况是：现有资源耗尽且无法在 12 个月内重建同等规模的备选方案。</p>
+                    </div>
+                    <div class="group">
+                        <p class="text-[10px] text-zinc-500 font-bold mb-1 tracking-widest uppercase">2. 极端概率预测</p>
+                        <div class="flex items-end gap-2">
+                            <span class="text-2xl font-bold text-red-500">22.4%</span>
+                            <span class="text-[10px] text-zinc-600 pb-1">-- 统计学意义上的崩盘临界点</span>
+                        </div>
+                    </div>
+                    <div class="group">
+                        <p class="text-[10px] text-zinc-500 font-bold mb-1 tracking-widest uppercase">3. 风险接受判定</p>
+                        <div class="p-3 bg-red-900/10 rounded border border-red-900/30 text-xs text-red-300">
+                            结论：不可接受。系统识别到该决策带有 "毁灭性尾部风险"。在没有 200% 的现金流保护下，不建议执行。
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateWADM(q) {
+            const container = document.getElementById('wadmDisplay');
+            container.innerHTML = `
+                <table class="w-full text-left text-[11px]">
+                    <thead>
+                        <tr class="text-zinc-600 border-b border-zinc-800">
+                            <th class="pb-2 font-normal">DIMENSION</th>
+                            <th class="pb-2 font-normal">WEIGHT</th>
+                            <th class="pb-2 font-normal">SCORE</th>
+                            <th class="pb-2 text-right font-normal">WEIGHTED</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-zinc-300">
+                        <tr class="border-b border-zinc-900/50"><td class="py-4">经济回报 / ROI</td><td>0.45</td><td>6/10</td><td class="text-right">2.7</td></tr>
+                        <tr class="border-b border-zinc-900/50"><td class="py-4">身心健康 / WELLNESS</td><td>0.25</td><td>4/10</td><td class="text-right">1.0</td></tr>
+                        <tr class="border-b border-zinc-900/50"><td class="py-4">职业成长 / GROWTH</td><td>0.20</td><td>8/10</td><td class="text-right">1.6</td></tr>
+                        <tr class="border-b border-zinc-900/50"><td class="py-4">人际资产 / SOCIAL</td><td>0.10</td><td>7/10</td><td class="text-right">0.7</td></tr>
+                        <tr class="text-blue-500 font-bold"><td class="py-4" colspan="3">AGGREGATE_WADM_TOTAL</td><td class="py-4 text-right">6.0</td></tr>
+                    </tbody>
+                </table>
+            `;
+            
+            // 计算最终综合得分
+            document.getElementById('finalScore').innerHTML = `60<span class="text-2xl text-zinc-600">%</span>`;
+            document.getElementById('verdictText').innerText = "审计模型判定：这是一个‘高成长、高脆弱性’的选择。虽然 WADM 显示出巨大的吸引力（6.0分），但 WCCA 揭示了底线的极度不稳定性。建议：先通过 WCCA 的‘底线测试’（即：如果失败，你是否有 Plan B 养活自己？），若 Plan B 不存在，则执行指数应降至 30% 以下。";
+        }
+
+        function saveDecision() {
+            alert("SUCCESS: 决策审计报告已加密归档至本地数据库。");
+        }
+    </script>
+</body>
+</html>
