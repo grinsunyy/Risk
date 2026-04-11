@@ -11,105 +11,116 @@
         
         body { 
             font-family: 'Inter', sans-serif;
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.4s ease;
             min-height: 100vh;
             margin: 0;
         }
         h1, h2, h3, .serif { font-family: 'Noto Serif SC', serif; }
 
-        /* 首页：浅蓝白渐变 */
-        .theme-home { background: linear-gradient(135deg, #e0f2fe 0%, #ffffff 100%); color: #0c4a6e; }
-        
-        /* WCCA：黑红色 */
-        .theme-wcca { background: #050000; color: #ff4d4d; }
-        .theme-wcca .vibrant-input { border: 1px solid #450a0a; background: #1a0505; color: #ff8080; }
-        .theme-wcca button#execBtn { border-color: #ff4d4d; color: #ff4d4d; }
-        .theme-wcca button#execBtn:hover { background: #ff4d4d; color: #000; }
+        /* 全局黑白风格 */
+        .theme-home { background: #000; color: #fff; }
+        .theme-wcca { background: #000; color: #fff; }
+        .theme-wadm { background: #fff; color: #000; }
 
-        /* WADM：黑绿色 */
-        .theme-wadm { background: #000502; color: #4ade80; }
-        .theme-wadm .vibrant-input { border: 1px solid #064e3b; background: #022c22; color: #a7f3d0; }
-        .theme-wadm button#execBtn { border-color: #4ade80; color: #4ade80; }
-        .theme-wadm button#execBtn:hover { background: #4ade80; color: #000; }
-
-        .vibrant-input { border-radius: 6px; padding: 12px; width: 100%; outline: none; transition: 0.3s; }
+        .vibrant-input { 
+            border: 1px solid rgba(128,128,128,0.3); 
+            background: transparent; 
+            padding: 12px; 
+            width: 100%; 
+            outline: none; 
+            border-radius: 4px;
+        }
         
+        .theme-wcca .vibrant-input { color: #fff; border-color: #333; }
+        .theme-wadm .vibrant-input { color: #000; border-color: #ccc; }
+
         /* 表格样式 */
-        .wadm-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        .wadm-table th, .wadm-table td { border: 1px solid currentColor; padding: 8px; text-align: center; font-size: 13px; }
-        .add-col-btn { cursor: pointer; padding: 4px 8px; border: 1px dashed currentColor; border-radius: 4px; font-size: 10px; }
+        .wadm-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .wadm-table th, .wadm-table td { border: 1px solid currentColor; padding: 12px; text-align: center; }
+        .editable-header { background: transparent; border: none; text-align: center; width: 100%; font-weight: bold; color: inherit; }
+
+        .btn-square {
+            border: 1px solid currentColor;
+            padding: 12px 24px;
+            font-size: 12px;
+            letter-spacing: 0.2em;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+        .btn-square:hover { background: #fff; color: #000; }
+        .theme-wadm .btn-square:hover { background: #000; color: #fff; }
+
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
-        #resultContent { font-size: 15px; line-height: 1.8; letter-spacing: 0.02em; }
-        .chart-container { position: relative; height: 400px; width: 100%; margin-top: 30px; }
-        .fade-in { animation: fadeIn 0.6s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .icon-heart { color: #ff4d4d; margin-right: 10px; }
+        .icon-balance { color: #4ade80; margin-right: 10px; }
     </style>
 </head>
 <body class="theme-home p-6 md:p-16">
 
     <div class="max-w-5xl mx-auto">
         <header class="flex justify-between items-start mb-20 fade-in">
-            <div>
-                <h1 class="text-4xl font-bold tracking-tighter">Safe-Logic</h1>
-                <p class="text-[10px] uppercase tracking-[0.5em] opacity-60 mt-2">理性是唯一的避风港</p>
+            <div id="navGroup">
+                <button id="backBtn" onclick="goHome()" class="hidden text-xs border-b border-current pb-1 opacity-70 hover:opacity-100 mb-4 block">← 返回首页</button>
+                <h1 class="text-3xl font-bold tracking-tighter">Safe-Logic</h1>
             </div>
-            <button onclick="location.reload()" class="text-xs border-b border-current pb-1 opacity-70 hover:opacity-100">RESET / 重置</button>
+            <button onclick="alert('历史记录模块正在开发中...')" class="text-xs border border-current px-4 py-2 opacity-70 hover:opacity-100">历史记录</button>
         </header>
 
-        <div id="homePage" class="grid grid-cols-1 md:grid-cols-2 gap-10 fade-in">
-            <div onclick="enterModule('WCCA')" class="p-12 border border-blue-100 hover:border-blue-400 transition-all cursor-pointer rounded-2xl bg-white/40 shadow-sm group">
-                <h2 class="serif text-2xl font-bold mb-4">WCCA <span class="text-sm font-light opacity-60">最坏情况审计</span></h2>
-                <p class="text-sm leading-relaxed opacity-70">单一决策的极限压力测试。先看清万丈深渊，再决定是否起跳。</p>
-                <div class="mt-8 text-[10px] font-bold group-hover:translate-x-2 transition-transform">PROCEED →</div>
+        <div id="homePage" class="grid grid-cols-1 md:grid-cols-2 gap-16 fade-in">
+            <div class="space-y-6">
+                <div class="flex items-center">
+                    <span class="icon-heart text-3xl">💔</span>
+                    <h2 class="text-3xl font-bold">WCCA 最坏情况审计</h2>
+                </div>
+                <p class="text-sm opacity-60 leading-relaxed">面对不确定性，首先审计生存底线。剥离感性，直视最黑暗的假设。</p>
+                <button onclick="enterModule('WCCA')" class="btn-square">开始分析</button>
             </div>
-            <div onclick="enterModule('WADM')" class="p-12 border border-blue-100 hover:border-blue-400 transition-all cursor-pointer rounded-2xl bg-white/40 shadow-sm group">
-                <h2 class="serif text-2xl font-bold mb-4">WADM <span class="text-sm font-light opacity-60">加权矩阵审计</span></h2>
-                <p class="text-sm leading-relaxed opacity-70">多维量化评估。用数学消除情绪噪音，在复杂选项中定位最优解。</p>
-                <div class="mt-8 text-[10px] font-bold group-hover:translate-x-2 transition-transform">PROCEED →</div>
+            <div class="space-y-6">
+                <div class="flex items-center">
+                    <span class="icon-balance text-3xl">⚖️</span>
+                    <h2 class="text-3xl font-bold">WADM 加权矩阵审计</h2>
+                </div>
+                <p class="text-sm opacity-60 leading-relaxed">多维加权数学模型。在复杂的利益博弈中，通过逻辑量化寻找最优解。</p>
+                <button onclick="enterModule('WADM')" class="btn-square">开始分析</button>
             </div>
         </div>
 
         <div id="appPage" class="hidden fade-in">
             
             <div id="wccaForm" class="hidden max-w-2xl mx-auto space-y-8">
-                <h3 class="serif text-xl text-center">输入待审计的单一决策逻辑</h3>
-                <textarea id="wccaInput" class="vibrant-input h-48 serif text-lg" placeholder="例如：投入全部积蓄在二线城市加盟火锅店..."></textarea>
+                <h3 class="serif text-xl opacity-80">审计对象：描述你的单一决策逻辑</h3>
+                <textarea id="wccaInput" class="vibrant-input h-48 serif text-lg" placeholder="在此输入决策内容..."></textarea>
             </div>
 
             <div id="wadmForm" class="hidden space-y-6">
-                <div class="flex justify-between items-end mb-4">
-                    <h3 class="serif text-xl">加权平均决策矩阵 (WADM)</h3>
-                    <button onclick="addOption()" class="add-col-btn hover:bg-white hover:text-black transition-all">+ 新增选项</button>
+                <div class="bg-gray-100 p-6 rounded-sm text-sm mb-6 leading-relaxed border-l-4 border-black">
+                    <strong>填写规则：</strong> 写出不同选择和影响选择的因素，在因素的括号内写上你认为的权重（1-10），在选项下方格子中填上对应因素在该选项中的得分（1-10分）。
                 </div>
                 <div class="overflow-x-auto">
                     <table class="wadm-table" id="wadmTable">
                         <thead>
                             <tr id="tableHeader">
-                                <th class="w-1/3">因素 (权重 1-10)</th>
-                                <th>选项 A</th>
-                                <th>选项 B</th>
+                                <th class="w-1/3 italic">评估因素 (权重 1-10)</th>
+                                <th><input class="editable-header" value="去深圳 (1-10分)"></th>
+                                <th><input class="editable-header" value="留本地 (1-10分)"></th>
                             </tr>
                         </thead>
                         <tbody id="tableBody"></tbody>
-                        <tfoot>
-                            <tr class="font-bold opacity-90">
-                                <td>总分 (Σ 权重×评分)</td>
-                                <td id="total-0">0</td>
-                                <td id="total-1">0</td>
-                            </tr>
-                        </tfoot>
                     </table>
                 </div>
-                <button onclick="addRow()" class="text-[10px] font-bold border border-current px-4 py-2 rounded-full hover:bg-current hover:text-black transition-all">+ 添加评估因素</button>
+                <div class="flex gap-4">
+                    <button onclick="addRow()" class="text-xs border border-current px-3 py-1">新增因素</button>
+                    <button onclick="addOption()" class="text-xs border border-current px-3 py-1">新增选项</button>
+                </div>
             </div>
 
-            <div class="max-w-2xl mx-auto">
-                <button onclick="execute()" id="execBtn" class="w-full mt-16 py-6 border border-current font-bold text-xs tracking-[0.4em] transition-all rounded-xl">执行逻辑审计分析</button>
-            </div>
+            <button onclick="execute()" id="execBtn" class="w-full mt-16 py-5 border border-current font-bold text-xs tracking-[0.4em] transition-all">执行决策审计</button>
 
-            <div id="resultArea" class="hidden mt-20 fade-in border-t border-current pt-12 pb-32">
-                <div id="resultContent" class="serif whitespace-pre-wrap"></div>
-                <div id="chartSection" class="hidden chart-container">
+            <div id="resultArea" class="hidden mt-16 border-t border-current pt-12 pb-24">
+                <div id="resultContent" class="serif whitespace-pre-wrap leading-loose"></div>
+                <div id="chartSection" class="hidden mt-10 h-[400px]">
                     <canvas id="decisionChart"></canvas>
                 </div>
             </div>
@@ -117,7 +128,7 @@
     </div>
 
     <script>
-        const API_KEY = "sk-xxxxxxxxxxxxxxxx"; // 请在此处填入你的 DeepSeek API Key
+        const API_KEY = "sk-baa08b3ecffc48bbb6bfc1b4400c91ff";
         let currentModule = '';
         let optionCount = 2;
         let chartInstance = null;
@@ -127,6 +138,7 @@
             document.body.className = m === 'WCCA' ? 'theme-wcca' : 'theme-wadm';
             document.getElementById('homePage').classList.add('hidden');
             document.getElementById('appPage').classList.remove('hidden');
+            document.getElementById('backBtn').classList.remove('hidden');
             document.getElementById('wccaForm').classList.toggle('hidden', m !== 'WCCA');
             document.getElementById('wadmForm').classList.toggle('hidden', m !== 'WADM');
             if(m === 'WADM' && document.getElementById('tableBody').children.length === 0) {
@@ -134,9 +146,17 @@
             }
         }
 
+        function goHome() {
+            document.body.className = 'theme-home';
+            document.getElementById('homePage').classList.remove('hidden');
+            document.getElementById('appPage').classList.add('hidden');
+            document.getElementById('backBtn').classList.add('hidden');
+            document.getElementById('resultArea').classList.add('hidden');
+        }
+
         function addRow() {
             const tr = document.createElement('tr');
-            let html = `<td><input type="text" placeholder="例: 长期收益" class="bg-transparent outline-none w-2/3 text-left"> (<input type="number" value="5" min="1" max="10" class="bg-transparent w-8 text-center font-bold">)</td>`;
+            let html = `<td><input type="text" placeholder="因素" class="bg-transparent outline-none w-2/3"> (<input type="number" value="5" min="1" max="10" class="bg-transparent w-8 text-center font-bold">)</td>`;
             for(let i=0; i<optionCount; i++) {
                 html += `<td><input type="number" value="5" min="1" max="10" class="bg-transparent w-full text-center"></td>`;
             }
@@ -146,71 +166,45 @@
 
         function addOption() {
             optionCount++;
-            const char = String.fromCharCode(64 + optionCount);
             const th = document.createElement('th');
-            th.innerText = `选项 ${char}`;
+            th.innerHTML = `<input class="editable-header" value="新选项 ${optionCount} (1-10分)">`;
             document.getElementById('tableHeader').appendChild(th);
-            
             Array.from(document.getElementById('tableBody').children).forEach(row => {
                 const td = document.createElement('td');
                 td.innerHTML = `<input type="number" value="5" min="1" max="10" class="bg-transparent w-full text-center">`;
                 row.appendChild(td);
             });
-
-            const footer = document.getElementById('wadmTable').tFoot.rows[0];
-            const td = document.createElement('td');
-            td.id = `total-${optionCount-1}`;
-            td.innerText = "0";
-            footer.appendChild(td);
         }
 
         async function execute() {
             const btn = document.getElementById('execBtn');
             const resArea = document.getElementById('resultArea');
             const resContent = document.getElementById('resultContent');
-            
-            btn.innerText = "正在同步大数据分析模型...";
+            btn.innerText = "正在调用智性逻辑链路...";
             btn.disabled = true;
 
             let prompt = "";
             let chartData = null;
 
             if(currentModule === 'WCCA') {
-                prompt = `对决策执行最坏情况审计：${document.getElementById('wccaInput').value}。
-                要求：
-                1. 言简意赅，不要废话。
-                2. 必须先用一段话给出“最坏的坏结果”。
-                3. 然后用一段话给出“可能的好处”。
-                4. 严禁使用任何表情包或奇怪符号，保持冷峻的文字风格。`;
+                prompt = `对以下决策执行WCCA审计：${document.getElementById('wccaInput').value}。
+                要求：先详细说明最坏的结果（风险审计），再说明可能的好处。言简意赅，不使用任何特殊符号和表情，保持优雅黑白文风。`;
             } else {
                 const rows = Array.from(document.getElementById('tableBody').children);
-                const opts = Array.from(document.getElementById('tableHeader').children).slice(1).map(th => th.innerText);
+                const opts = Array.from(document.querySelectorAll('.editable-header')).map(el => el.value);
                 const factors = rows.map(r => {
                     const inputs = r.querySelectorAll('input');
-                    return { 
-                        name: inputs[0].value || "未命名因素", 
-                        weight: parseInt(inputs[1].value), 
-                        scores: Array.from(inputs).slice(2).map(i => parseInt(i.value)) 
-                    };
+                    return { name: inputs[0].value || "因素", weight: parseInt(inputs[1].value), scores: Array.from(inputs).slice(2).map(i => parseInt(i.value)) };
                 });
 
-                // 计算总分以便传给AI验证
-                const totals = opts.map((_, i) => factors.reduce((acc, f) => acc + (f.weight * f.scores[i]), 0));
                 chartData = { labels: factors.map(f => f.name), datasets: opts.map((name, i) => ({
-                    label: name,
-                    data: factors.map(f => f.scores[i]),
-                    borderColor: i === 0 ? '#4ade80' : (i === 1 ? '#34d399' : '#059669'),
-                    backgroundColor: 'rgba(74, 222, 128, 0.1)'
+                    label: name, data: factors.map(f => f.scores[i]),
+                    borderColor: i === 0 ? '#000' : '#888', backgroundColor: 'rgba(0,0,0,0.05)'
                 }))};
 
-                prompt = `执行WADM分析。
-                数据：因素(${factors.map(f => f.name + '权重' + f.weight).join('|')})，选项(${opts.join('|')})。
-                规则：
-                1. 严格生成对比表格，包含评分及[权重*评分]结果。
-                2. 计算总分。
-                3. 若2选项输出“更好的选择”，若≥3选项输出“推荐选择”并按总分排名。
-                4. 提供大数据总结及决策建议。
-                5. 严禁特殊排版符号，保持极简文字。`;
+                prompt = `执行WADM分析。因素及权重：${factors.map(f => f.name + '(' + f.weight + ')').join(', ')}。选项：${opts.join(', ')}。
+                数据明细：${JSON.stringify(factors)}。
+                要求：1.计算加权总分。2.根据分数给出推荐。3.提供基于大数据的深度总结建议。严禁表情和特殊排版符号。`;
             }
 
             try {
@@ -220,25 +214,19 @@
                     body: JSON.stringify({
                         model: "deepseek-chat",
                         messages: [{role: "user", content: prompt}],
-                        temperature: 0.2
+                        temperature: 0.3
                     })
                 });
                 const data = await response.json();
                 resContent.innerText = data.choices[0].message.content;
                 resArea.classList.remove('hidden');
-
-                if(currentModule === 'WADM' && chartData) {
-                    renderChart(chartData);
-                } else {
-                    document.getElementById('chartSection').classList.add('hidden');
-                }
-                
+                if(currentModule === 'WADM' && chartData) renderChart(chartData);
                 resArea.scrollIntoView({ behavior: 'smooth' });
             } catch (e) {
-                resContent.innerText = "审计连接超时，请检查 API 配置。";
+                resContent.innerText = "API 接入受阻，请检查网络或密钥有效性。";
                 resArea.classList.remove('hidden');
             } finally {
-                btn.innerText = "执行逻辑审计分析";
+                btn.innerText = "执行决策审计";
                 btn.disabled = false;
             }
         }
@@ -247,24 +235,14 @@
             const ctx = document.getElementById('decisionChart').getContext('2d');
             document.getElementById('chartSection').classList.remove('hidden');
             if(chartInstance) chartInstance.destroy();
-            
             chartInstance = new Chart(ctx, {
                 type: 'radar',
                 data: data,
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    scales: {
-                        r: {
-                            angleLines: { color: 'rgba(74, 222, 128, 0.2)' },
-                            grid: { color: 'rgba(74, 222, 128, 0.2)' },
-                            pointLabels: { color: '#4ade80', font: { size: 12 } },
-                            ticks: { display: false, max: 10, min: 0 }
-                        }
-                    },
-                    plugins: {
-                        legend: { labels: { color: '#4ade80', font: { family: 'Inter' } } }
-                    }
+                    scales: { r: { beginAtZero: true, max: 10, ticks: { display: false } } },
+                    plugins: { legend: { position: 'bottom' } }
                 }
             });
         }
