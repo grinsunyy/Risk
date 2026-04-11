@@ -3,158 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Safe-Logic | 智性决策审计</title>
+    <title>Safe-Logic | 智性决策工具</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;700&family=Inter:wght@300;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Inter:wght@300;600&display=swap');
         
         body { 
             background-color: #ffffff; 
             color: #1a1a1a; 
             font-family: 'Inter', sans-serif;
-            -webkit-font-smoothing: antialiased;
         }
         h1, .serif { font-family: 'Noto Serif SC', serif; }
         
-        .fade-in { animation: fadeIn 0.8s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .mystic-card { 
-            border: 1px solid #f0f0f0;
-            transition: all 0.5s cubic-bezier(0.2, 1, 0.3, 1);
+        /* 充满活力的输入框设计 */
+        .vibrant-input {
+            border: 2px solid #f0f0f0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 8px;
         }
-        .mystic-card:hover { 
+        .vibrant-input:focus {
             border-color: #000;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.03);
-        }
-        
-        .btn-mystic {
-            background: #000;
-            color: #fff;
-            transition: all 0.3s;
-            letter-spacing: 0.2em;
-            position: relative;
-            overflow: hidden;
-        }
-        .btn-mystic:hover { background: #333; transform: scale(1.02); }
-        
-        /* UX: 思考中的呼吸动画 */
-        .thinking { animation: pulse 1.5s infinite; pointer-events: none; opacity: 0.7; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
-
-        .share-tag {
-            font-size: 10px;
-            color: #999;
-            cursor: pointer;
-            text-decoration: underline;
+            box-shadow: 0 0 0 4px rgba(0,0,0,0.05);
+            transform: translateY(-2px);
+            outline: none;
         }
 
-        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        /* 表格样式 */
+        .wadm-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .wadm-table th, .wadm-table td { border: 1px solid #e5e7eb; padding: 12px; text-align: center; }
+        .wadm-table th { background-color: #f9fafb; font-size: 12px; font-weight: 600; }
 
-        /* 结果文字加粗放大 */
-        .result-text {
-            font-size: 1.25rem;
+        /* 结果增强显示 */
+        .result-bold {
+            font-size: 1.5rem;
             line-height: 2.2;
             font-weight: 700;
+            color: #000;
         }
+
+        /* 醒目的分享区域 */
+        .share-banner {
+            background: linear-gradient(135deg, #1a1a1a 0%, #333 100%);
+            color: white;
+            padding: 24px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .share-banner:hover { transform: scale(1.01); }
+
+        .analysis-icon {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background: #4ade80; /* 绿色分析标识 */
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .fade-in { animation: fadeIn 0.6s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="p-6 md:p-20">
 
     <div class="max-w-5xl mx-auto">
-        <header class="flex justify-between items-end mb-24 fade-in">
+        <header class="flex justify-between items-center mb-24 fade-in">
             <div>
                 <h1 class="text-4xl font-bold tracking-tighter">Safe-Logic</h1>
                 <p class="text-[10px] uppercase tracking-[0.5em] text-gray-400 mt-2">理性是唯一的避风港</p>
             </div>
-            <button onclick="toggleHistory()" class="text-xs font-light tracking-widest border-b border-black pb-1 hover:text-gray-400 hover:border-gray-400 transition-all">
-                ARCHIVE / 历史记录
-            </button>
+            <button onclick="location.reload()" class="text-xs font-light tracking-widest border-b border-black pb-1">RESET / 重置</button>
         </header>
 
         <div id="homePage" class="grid grid-cols-1 md:grid-cols-2 gap-16 fade-in">
-            <div class="mystic-card p-12 rounded-sm flex flex-col justify-between h-[480px]">
-                <div>
-                    <h2 class="serif text-3xl font-bold mb-2">WCCA <span class="text-lg font-light ml-2">最坏情况分析</span></h2>
-                    <p class="text-[10px] uppercase tracking-widest text-gray-400 border-b pb-4 mb-6">Worst-Case Consequences Analysis</p>
-                    <p class="text-sm leading-relaxed text-gray-600 font-light">
-                        针对单一决策，通过逻辑压力测试，剥离感性盲区。<br><br>
-                        <strong>直视最底层的生理与财务风险，守住生存底线。</strong>
-                    </p>
-                </div>
-                <button onclick="enterModule('WCCA')" class="btn-mystic w-full py-5 text-xs font-bold">开始分析</button>
+            <div onclick="enterModule('WCCA')" class="p-12 border-2 border-gray-100 hover:border-black transition-all cursor-pointer rounded-xl group">
+                <h2 class="serif text-3xl font-bold mb-2">WCCA <span class="text-sm font-light">最坏情况审计</span></h2>
+                <p class="text-sm text-gray-500 mt-4 leading-relaxed">单一决策逻辑压力测试，直视最底层生理与财务风险。</p>
+                <div class="mt-10 text-[10px] font-bold group-hover:translate-x-2 transition-transform">NEXT →</div>
             </div>
 
-            <div class="mystic-card p-12 rounded-sm flex flex-col justify-between h-[480px]">
-                <div>
-                    <h2 class="serif text-3xl font-bold mb-2">WADM <span class="text-lg font-light ml-2">加权决策矩阵</span></h2>
-                    <p class="text-[10px] uppercase tracking-widest text-gray-400 border-b pb-4 mb-6">Weighted Additive Decision Matrix</p>
-                    <p class="text-sm leading-relaxed text-gray-600 font-light">
-                        通过多维加权数学模型，在混沌的选择中建立秩序。<br><br>
-                        <strong>量化每一个变量，推导出概率学上的最优解。</strong>
-                    </p>
-                </div>
-                <button onclick="enterModule('WADM')" class="btn-mystic w-full py-5 text-xs font-bold">开始分析</button>
+            <div onclick="enterModule('WADM')" class="p-12 border-2 border-gray-100 hover:border-black transition-all cursor-pointer rounded-xl group">
+                <h2 class="serif text-3xl font-bold mb-2">WADM <span class="text-sm font-light">加权矩阵审计</span></h2>
+                <p class="text-sm text-gray-500 mt-4 leading-relaxed">多维加权数学模型。通过量化指标在混沌选择中建立秩序。</p>
+                <div class="mt-10 text-[10px] font-bold group-hover:translate-x-2 transition-transform">NEXT →</div>
             </div>
         </div>
 
         <div id="appPage" class="hidden fade-in">
-            <div class="max-w-3xl mx-auto">
-                <div id="wccaForm" class="hidden space-y-12">
-                    <div class="text-center mb-16">
-                        <h3 class="serif text-2xl mb-2 italic">单一决策风险审计</h3>
-                        <p class="text-[10px] text-gray-400 tracking-widest uppercase">Input decision for pressure test</p>
-                    </div>
-                    <textarea id="wccaInput" class="w-full border-b border-gray-200 focus:border-black outline-none py-4 text-xl serif placeholder-gray-200" placeholder="例如：辞职创业、投入全部积蓄买入某资产..." rows="3"></textarea>
+            <div id="wccaForm" class="hidden max-w-2xl mx-auto space-y-10">
+                <h3 class="serif text-2xl text-center">风险审计：描述你的单一决策</h3>
+                <textarea id="wccaInput" class="w-full vibrant-input p-6 text-lg serif h-40" placeholder="例如：投入50万在某个新兴市场开店..."></textarea>
+            </div>
+
+            <div id="wadmForm" class="hidden space-y-10">
+                <div class="text-center">
+                    <h3 class="serif text-2xl">加权平均决策矩阵 (WADM)</h3>
+                    <p class="text-[10px] text-gray-400 mt-2 uppercase">Mathematical Optimization Matrix</p>
                 </div>
 
-                <div id="wadmForm" class="hidden space-y-12">
-                    <div class="text-center mb-8">
-                        <h3 class="serif text-2xl mb-2 italic">多维加权矩阵审计</h3>
-                        <p class="text-[10px] text-gray-400 tracking-widest uppercase">Mathematical optimization of choices</p>
-                    </div>
-                    <div class="space-y-10">
-                        <div>
-                            <label class="text-[10px] uppercase tracking-widest text-gray-400 block mb-2">备选选项 (用逗号隔开)</label>
-                            <input id="wadmOpts" class="w-full border-b border-gray-200 focus:border-black outline-none py-2 text-lg serif placeholder-gray-200" placeholder="选项A, 选项B, 选项C">
+                <div class="max-w-xl mx-auto mb-10">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 block text-center">第一步：输入对比选项（用逗号隔开）</label>
+                    <input id="wadmOpts" oninput="buildTable()" class="w-full vibrant-input p-4 text-center text-lg serif" placeholder="选项A, 选项B">
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="wadm-table fade-in" id="matrixTable">
+                        <thead>
+                            <tr id="tableHeader">
+                                </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            </tbody>
+                    </table>
+                </div>
+                <div class="text-center">
+                    <button onclick="addRow()" class="text-[10px] font-bold border border-gray-200 px-4 py-2 rounded hover:bg-black hover:text-white transition-all">+ 添加评估因素</button>
+                </div>
+            </div>
+
+            <div class="flex gap-6 mt-20 max-w-2xl mx-auto">
+                <button onclick="execute()" id="execBtn" class="flex-1 bg-black text-white py-6 rounded-xl font-bold text-xs tracking-[0.3em] hover:bg-gray-800 transition-all">执行逻辑审计分析</button>
+            </div>
+
+            <div id="resultArea" class="hidden mt-20 fade-in pb-40">
+                <div id="resultContent" class="result-bold serif whitespace-pre-wrap mb-16"></div>
+                
+                <div class="share-banner" onclick="copyResult()">
+                    <div class="flex items-center">
+                        <span class="analysis-icon"></span>
+                        <div class="text-left">
+                            <p class="text-[10px] font-bold opacity-70 tracking-widest uppercase">Result Summary</p>
+                            <p class="text-lg font-bold">获取完整审计报告与大数据分析总结</p>
                         </div>
-                        
-                        <div>
-                            <div class="flex justify-between items-center mb-4">
-                                <label class="text-[10px] uppercase tracking-widest text-gray-400">评估维度、权重(%)及评分(1-10)</label>
-                                <button onclick="addFactor()" class="text-[10px] tracking-widest text-black border border-black px-2 py-1 hover:bg-black hover:text-white transition-all">+ 增加维度</button>
-                            </div>
-                            <div id="factorList" class="space-y-3"></div>
-                        </div>
                     </div>
-                </div>
-
-                <div class="flex gap-6 mt-20">
-                    <button onclick="goBack()" class="flex-1 py-5 border border-gray-200 text-[10px] tracking-[0.3em] uppercase hover:bg-gray-50 transition-all">返回主页</button>
-                    <button id="execBtn" onclick="execute()" class="btn-mystic flex-[2] py-5 text-[10px] font-bold">执行智性审计</button>
-                </div>
-
-                <div id="resultArea" class="hidden mt-24 p-12 bg-gray-50 rounded-sm relative fade-in border-l-4 border-black">
-                    <div id="resultContent" class="result-text text-gray-800 serif whitespace-pre-wrap"></div>
-                    <div class="mt-12 flex justify-between items-center border-t border-gray-200 pt-8">
-                        <div onclick="shareCurrent()" class="share-tag italic underline uppercase">COPY & SHARE / 复制审计报告</div>
-                        <button onclick="execute()" class="text-[10px] font-bold tracking-widest uppercase underline">RE-AUDIT / 重新审计</button>
+                    <div class="text-right">
+                        <span class="text-xs border border-white/30 px-4 py-2 rounded-full hover:bg-white hover:text-black transition-all">COPY REPORT</span>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div id="historyOverlay" class="hidden fixed inset-0 bg-white z-50 p-6 md:p-20 overflow-y-auto fade-in">
-            <div class="flex justify-between items-center mb-12">
-                <h2 class="serif text-2xl font-bold">历史存证</h2>
-                <button onclick="toggleHistory()" class="text-3xl font-light">&times;</button>
-            </div>
-            <div id="historyDetailedList" class="space-y-8"></div>
         </div>
     </div>
 
     <script>
-        const API_KEY = "sk-baa08b3ecffc48bbb6bfc1b4400c91ff"; // 提醒：生产环境请使用后端转发
+        const API_KEY = "sk-baa08b3ecffc48bbb6bfc1b4400c91ff";
         let currentModule = '';
 
         function enterModule(m) {
@@ -163,70 +158,96 @@
             document.getElementById('appPage').classList.remove('hidden');
             document.getElementById('wccaForm').classList.toggle('hidden', m !== 'WCCA');
             document.getElementById('wadmForm').classList.toggle('hidden', m !== 'WADM');
-            if(m === 'WADM' && !document.getElementById('factorList').children.length) {
-                addFactor("长期收益", 40); addFactor("风险控制", 30); addFactor("身心健康", 30);
+            if(m === 'WADM') buildTable();
+        }
+
+        function buildTable() {
+            const optsVal = document.getElementById('wadmOpts').value || "选项A, 选项B";
+            const opts = optsVal.split(',').map(s => s.trim()).filter(s => s);
+            const header = document.getElementById('tableHeader');
+            
+            header.innerHTML = `<th>因素 (权重 1-10)</th>`;
+            opts.forEach(opt => {
+                header.innerHTML += `<th>${opt} (评分 1-10)</th>`;
+            });
+
+            // 如果表格没有内容，默认加三行
+            const body = document.getElementById('tableBody');
+            if(body.children.length === 0) {
+                addRow(); addRow(); addRow();
+            } else {
+                // 更新每一行的列数以匹配选项
+                Array.from(body.children).forEach(row => {
+                    const currentCols = row.children.length - 1;
+                    if(currentCols < opts.length) {
+                        for(let i=0; i < (opts.length - currentCols); i++) {
+                            const td = document.createElement('td');
+                            td.innerHTML = `<input type="number" value="5" min="1" max="10" class="w-full text-center outline-none">`;
+                            row.appendChild(td);
+                        }
+                    } else if (currentCols > opts.length) {
+                        for(let i=0; i < (currentCols - opts.length); i++) {
+                            row.removeChild(row.lastChild);
+                        }
+                    }
+                });
             }
         }
 
-        function goBack() { location.reload(); }
-
-        function addFactor(n="新维度", w=10) {
-            const div = document.createElement('div');
-            div.className = "flex gap-4 items-center fade-in bg-white p-3 border border-gray-100";
-            div.innerHTML = `
-                <input type="text" value="${n}" class="flex-1 border-b border-gray-50 py-1 text-sm outline-none focus:border-black" placeholder="维度名称">
-                <div class="flex items-center gap-2">
-                    <span class="text-[9px] text-gray-400">权重%</span>
-                    <input type="number" value="${w}" class="w-12 text-center text-sm serif border-b border-gray-100 factor-weight">
-                </div>
-                <button onclick="this.parentElement.remove()" class="text-gray-300 hover:text-red-500 text-lg ml-2">&times;</button>
-            `;
-            document.getElementById('factorList').appendChild(div);
+        function addRow() {
+            const optsVal = document.getElementById('wadmOpts').value || "选项A, 选项B";
+            const optsCount = optsVal.split(',').filter(s => s.trim()).length || 2;
+            const tr = document.createElement('tr');
+            tr.className = "fade-in";
+            
+            let html = `<td>
+                <input type="text" placeholder="例: 风险控制" class="w-2/3 outline-none text-left">
+                (<input type="number" value="5" min="1" max="10" class="w-8 font-bold text-center outline-none">)
+            </td>`;
+            
+            for(let i=0; i < optsCount; i++) {
+                html += `<td><input type="number" value="5" min="1" max="10" class="w-full text-center outline-none"></td>`;
+            }
+            tr.innerHTML = html;
+            document.getElementById('tableBody').appendChild(tr);
         }
 
         async function execute() {
+            const btn = document.getElementById('execBtn');
             const resArea = document.getElementById('resultArea');
             const resContent = document.getElementById('resultContent');
-            const btn = document.getElementById('execBtn');
             
-            resArea.classList.add('hidden');
-            btn.innerText = "AUDITING / 审计中...";
-            btn.classList.add('thinking');
+            btn.innerText = "正在通过逻辑链路进行压力测试...";
+            btn.disabled = true;
 
             let prompt = "";
-            let inputSummary = "";
-
             if(currentModule === 'WCCA') {
-                const val = document.getElementById('wccaInput').value;
-                if(!val) return resetBtn();
-                inputSummary = "WCCA 审计：" + val;
-                prompt = `请对以下决策执行"最坏情况分析(WCCA)"：${val}。
-                要求：
-                1. 语气冷峻、专业。
-                2. 必须包含一个具体的、贴合该决策特点的名人名言（包含作者）。
-                3. 使用大量加粗文字强调核心风险点。
-                4. 结尾加上贴合语境的 Emoji。
-                5. 标注：大数据分析报告，仅供决策参考。`;
+                prompt = `对以下决策执行最坏情况审计：${document.getElementById('wccaInput').value}。要求：文字加粗加大，不使用任何表情符号、不使用#*-^等符号。最后附上基于大数据的综合分析总结，并以一句深刻的名人名言结尾。`;
             } else {
-                const opts = document.getElementById('wadmOpts').value;
-                if(!opts) return resetBtn();
-                const factors = Array.from(document.getElementById('factorList').children).map(el => ({
-                    name: el.querySelectorAll('input')[0].value,
-                    weight: el.querySelectorAll('input')[1].value
-                }));
-                
-                inputSummary = "WADM 矩阵分析：" + opts;
-                prompt = `请严格按照"加权平均决策矩阵(WADM)"逻辑执行分析：
-                备选方案：[${opts}]
-                评价维度及权重：${factors.map(f => f.name + ":" + f.weight + "%").join(", ")}
-                
-                任务：
-                1. 请你作为AI审计员，先为每个方案在各维度下给出合理的 1-10 分打分。
-                2. 严格执行公式：总分 = Σ(权重% × 评分)。
-                3. 输出计算过程和最终排名。
-                4. 结果段落文字需极度精炼且**加粗放大**。
-                5. 必须包含一句关于选择或逻辑的名人名言。
-                6. 配合贴合的 Emoji 并提供大数据综合反馈。`;
+                // 采集表格数据
+                const rows = Array.from(document.getElementById('tableBody').children);
+                const opts = document.getElementById('wadmOpts').value.split(',').map(s => s.trim());
+                let dataDetails = rows.map(row => {
+                    const inputs = row.querySelectorAll('input');
+                    let factor = inputs[0].value || "未命名因素";
+                    let weight = inputs[1].value;
+                    let scores = Array.from(inputs).slice(2).map(i => i.value);
+                    return { factor, weight, scores };
+                });
+
+                prompt = `执行WADM决策矩阵分析。
+                选项：${opts.join(' vs ')}
+                数据明细：${JSON.stringify(dataDetails)}
+                逻辑：
+                1. 权重由1-10分转化为对应的比例。
+                2. 计算公式：总分 = Σ(权重 × 评分)。
+                3. 按分数从高到低排序，给出最优决策。
+                要求：
+                1. 重点结论字体必须加粗加大。
+                2. 严禁使用任何表情符号。
+                3. 严禁出现#、*、—、^等特殊排版符号。
+                4. 给出一个大数据综合分析答案总结。
+                5. 结尾附上一句名人名言或影视作品寄语。`;
             }
 
             try {
@@ -242,55 +263,26 @@
                 const data = await response.json();
                 let result = data.choices[0].message.content;
                 
-                resContent.innerHTML = result.replace(/\*\*(.*?)\*\*/g, '<strong class="text-black">$1</strong>');
+                // 强力清除所有非法符号（防止AI不听话）
+                result = result.replace(/[#*—\-\^]/g, '').trim();
+                
+                resContent.innerText = result;
                 resArea.classList.remove('hidden');
                 resArea.scrollIntoView({ behavior: 'smooth' });
-                saveHistory(inputSummary, result);
             } catch (e) {
-                resContent.innerText = "逻辑链路中断。请检查网络或密钥有效性。";
+                resContent.innerText = "审计中断：逻辑无法抵达。请检查网络或配置。";
                 resArea.classList.remove('hidden');
             } finally {
-                resetBtn();
+                btn.innerText = "执行逻辑审计分析";
+                btn.disabled = false;
             }
         }
 
-        function resetBtn() {
-            const btn = document.getElementById('execBtn');
-            btn.innerText = "执行智性审计";
-            btn.classList.remove('thinking');
-        }
-
-        function saveHistory(title, result) {
-            let history = JSON.parse(localStorage.getItem('sl_history_v3') || "[]");
-            history.unshift({ time: new Date().toLocaleString(), title, result });
-            localStorage.setItem('sl_history_v3', JSON.stringify(history.slice(0, 20)));
-        }
-
-        function toggleHistory() {
-            const overlay = document.getElementById('historyOverlay');
-            overlay.classList.toggle('hidden');
-            if(!overlay.classList.contains('hidden')) loadHistory();
-        }
-
-        function loadHistory() {
-            const list = document.getElementById('historyDetailedList');
-            const history = JSON.parse(localStorage.getItem('sl_history_v3') || "[]");
-            list.innerHTML = history.length ? "" : "<p class='text-center text-gray-300 italic py-20'>库中尚无存证</p>";
-            history.forEach(item => {
-                const div = document.createElement('div');
-                div.className = "p-10 border border-gray-100 rounded-sm space-y-4 hover:border-black transition-all";
-                div.innerHTML = `
-                    <div class="flex justify-between border-b pb-4"><span class="text-[10px] text-gray-300 uppercase">${item.time}</span></div>
-                    <p class="serif font-bold text-lg">${item.title}</p>
-                    <div class="text-sm text-gray-600 leading-relaxed">${item.result.substring(0, 200)}...</div>
-                `;
-                list.appendChild(div);
-            });
-        }
-
-        function shareCurrent() {
+        function copyResult() {
             const text = document.getElementById('resultContent').innerText;
-            navigator.clipboard.writeText(text + "\n\n—— 来自 Safe-Logic 智性决策工具").then(() => alert("审计报告已复制"));
+            navigator.clipboard.writeText(text).then(() => {
+                alert("审计分析报告已复制到剪贴板。");
+            });
         }
     </script>
 </body>
