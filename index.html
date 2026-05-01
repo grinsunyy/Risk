@@ -1,47 +1,777 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Safe-Logic | 智性决策工具（Memory Edition）</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safe-Logic | 决策辅助工具 / Decision Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Inter:wght@300;400;600&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; background-color: #ffffff; color: #1a1a1a; transition: all 0.3s ease; }
+        h1, h2, h3, .serif { font-family: 'Noto Serif SC', serif; }
+        body.lang-en h1, body.lang-en h2, body.lang-en h3, body.lang-en .serif { font-family: 'Inter', sans-serif; }
 
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        .vibrant-input { border: 1px solid #e5e5e5; background: #fafafa; padding: 12px; width: 100%; outline: none; border-radius: 6px; transition: 0.3s; }
+        .vibrant-input:focus { border-color: #000; background: #fff; }
 
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Inter:wght@300;400;600&display=swap');
+        .wadm-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .wadm-table th, .wadm-table td { border: 1px solid #eeeeee; padding: 12px; text-align: center; }
+        .editable-header { background: transparent; border: none; text-align: center; width: 100%; font-weight: bold; color: #000; }
 
-body { font-family: Inter, sans-serif; background:#fff; color:#111; }
-h1,h2,h3,.serif { font-family:"Noto Serif SC", serif; }
+        .btn-action { border: 1px solid #000; padding: 10px 20px; font-size: 13px; transition: 0.2s; cursor: pointer; background: #fff; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; }
+        .btn-action:hover { background: #000; color: #fff; }
+        .btn-black { background: #000; color: #fff; }
 
-.vibrant-input { border:1px solid #e5e5e5; background:#fafafa; padding:12px; width:100%; border-radius:6px; }
+        .wcca-bad { color: #ef4444; font-weight: 600; }
+        .wcca-good { color: #22c55e; font-weight: 600; }
+        .wcca-summary { color: #000000; font-weight: 800; border-top: 1px solid #eee; padding-top: 15px; margin-top: 15px; }
 
-.btn-action { border:1px solid #000; padding:10px 20px; cursor:pointer; }
-.btn-action:hover { background:#000; color:#fff; }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-.wcca-good{color:#22c55e;font-weight:600;}
-.wcca-bad{color:#ef4444;font-weight:600;}
-
-.hidden{display:none;}
-</style>
+        .lang-toggle { font-size: 11px; letter-spacing: 0.1em; }
+    </style>
 </head>
-
 <body class="p-6 md:p-12">
 
-<div class="max-w-4xl mx-auto">
+    <!-- ============================================================
+         安全说明 / SECURITY NOTE
+         ============================================================
+         本版本不再把 API Key 写在源码里。用户首次使用时,会被要求
+         输入自己的 DeepSeek API Key,该 Key 只保存在用户本地浏览器
+         (localStorage),不会上传到任何服务器。
 
-<header class="flex justify-between items-center mb-16">
-    <div>
-        <h1 class="text-3xl font-bold">Safe-Logic</h1>
-        <p class="text-xs text-gray-400">Memory Decision System</p>
+         如果你想让所有用户共享同一个 Key 而不暴露它,推荐部署一个
+         Cloudflare Worker 作为中转。在文件最底部的注释中,我提供了
+         一份现成的 Worker 代码,5 分钟即可上线。
+
+         This version no longer hardcodes the API key. Users will be
+         prompted to enter their own DeepSeek API key, which is stored
+         only in their browser's localStorage.
+
+         For a proxy solution, see the Cloudflare Worker template at
+         the bottom of this file.
+         ============================================================ -->
+
+    <div class="max-w-4xl mx-auto">
+        <header class="flex justify-between items-center mb-16 fade-in">
+            <div>
+                <h1 class="text-3xl font-bold tracking-tight">Safe-Logic</h1>
+                <p data-i18n="subtitle" class="text-[10px] uppercase tracking-[0.3em] text-gray-400 mt-1">理性决策辅助工具</p>
+            </div>
+            <div class="flex gap-3 items-center">
+                <button onclick="toggleLang()" class="lang-toggle border border-gray-200 px-3 py-2 hover:bg-gray-50 rounded">
+                    <span id="langLabel">EN</span>
+                </button>
+                <button onclick="showSettings()" data-i18n="settingsBtn" class="text-xs border border-gray-200 px-4 py-2 hover:bg-gray-50 rounded">设置</button>
+                <button onclick="showHistory()" data-i18n="historyBtn" class="text-xs border border-gray-200 px-5 py-2 hover:bg-gray-50 rounded">历史记录</button>
+            </div>
+        </header>
+
+        <!-- 首页 / Home -->
+        <div id="homePage" class="grid grid-cols-1 md:grid-cols-2 gap-8 fade-in">
+            <div class="p-10 border border-gray-100 rounded-lg hover:shadow-xl transition-all">
+                <div class="flex items-center mb-4">
+                    <span class="text-3xl mr-3">💭</span>
+                    <h2 data-i18n="moduleATitle" class="text-2xl font-bold">我做了这件事会怎样?</h2>
+                </div>
+                <p data-i18n="moduleADesc" class="text-sm text-gray-500 mb-8 leading-relaxed">当你心里已经有一个想法,但拿不准要不要去做。把它写下来,看清它的好处、坏处和你可能忽略的风险。</p>
+                <button onclick="enterModule('WCCA')" data-i18n="moduleABtn" class="btn-action w-full py-4 uppercase font-bold">开始分析</button>
+            </div>
+            <div class="p-10 border border-gray-100 rounded-lg hover:shadow-xl transition-all">
+                <div class="flex items-center mb-4">
+                    <span class="text-3xl mr-3">⚖️</span>
+                    <h2 data-i18n="moduleBTitle" class="text-2xl font-bold">我该选择哪一个?</h2>
+                </div>
+                <p data-i18n="moduleBDesc" class="text-sm text-gray-500 mb-8 leading-relaxed">当你有两个或多个选择难以取舍。列出你看重的因素,给每个选项打分,让数字告诉你哪个更适合。</p>
+                <button onclick="enterModule('WADM')" data-i18n="moduleBBtn" class="btn-action w-full py-4 uppercase font-bold">开始分析</button>
+            </div>
+        </div>
+
+        <!-- 应用页 / App Page -->
+        <div id="appPage" class="hidden fade-in">
+            <button onclick="goHome()" data-i18n="backHome" class="mb-10 text-lg font-bold text-gray-800 hover:underline transition-all">← 返回首页</button>
+            
+            <!-- 单一决策表单 -->
+            <div id="wccaForm" class="hidden space-y-6">
+                <h3 data-i18n="wccaPrompt" class="serif text-xl">把你正在考虑的事情写下来</h3>
+                <p data-i18n="wccaHint" class="text-xs text-gray-500">越具体越好。比如"我在考虑下个月辞掉现在的工作去创业,手上有大约 8 万存款"——比"我要不要辞职"能得到更有用的分析。</p>
+                <textarea id="wccaInput" class="vibrant-input h-44 serif text-lg" data-i18n-placeholder="wccaPlaceholder" placeholder="在这里写下你的想法..."></textarea>
+            </div>
+
+            <!-- 多重选择表单 -->
+            <div id="wadmForm" class="hidden space-y-6">
+                <div class="text-xs bg-gray-50 p-5 border-l-4 border-black text-gray-600 mb-8 leading-relaxed">
+                    <strong data-i18n="wadmRulesTitle">填写说明:</strong>
+                    <span data-i18n="wadmRules">第一列写下你看重的因素(比如"收入"、"通勤时间"、"家人感受"),后面括号里填这个因素对你有多重要(1 到 10,越重要越高)。然后给每个选项在这个因素上的表现打分(1 到 10,越好越高)。</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="wadm-table" id="wadmTable">
+                        <thead>
+                            <tr id="tableHeader">
+                                <th data-i18n="factorCol" class="w-1/3 text-xs uppercase text-gray-400">考虑因素 (重要程度)</th>
+                                <th><input class="editable-header" value="选项一"></th>
+                                <th><input class="editable-header" value="选项二"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+                <div class="flex gap-4">
+                    <button onclick="addRow()" data-i18n="addFactor" class="text-[10px] border border-gray-200 px-4 py-2 hover:bg-gray-50 uppercase">添加因素</button>
+                    <button onclick="addOption()" data-i18n="addOption" class="text-[10px] border border-gray-200 px-4 py-2 hover:bg-gray-50 uppercase">添加选项</button>
+                </div>
+            </div>
+
+            <button onclick="execute()" id="execBtn" data-i18n="execBtn" class="btn-action btn-black w-full mt-12 py-5 font-bold tracking-[0.3em]">开始分析</button>
+
+            <!-- 结果区域 -->
+            <div id="resultArea" class="hidden mt-16 border-t-2 border-black pt-12">
+                <div id="resultContent" class="serif text-base leading-loose whitespace-pre-wrap mb-10"></div>
+                <div id="chartSection" class="hidden mb-12 h-80"><canvas id="decisionChart"></canvas></div>
+
+                <div class="flex flex-wrap gap-4 pt-10 border-t border-gray-100 pb-24">
+                    <button onclick="saveToHistory()" data-i18n="saveBtn" class="btn-action text-xs">保存记录</button>
+                    <button onclick="copyFullReport()" data-i18n="shareReportBtn" class="btn-action text-xs bg-black text-white">分享分析结果</button>
+                    <button onclick="copyToolLink()" data-i18n="shareLinkBtn" class="btn-action text-xs">分享工具网址</button>
+                    <button onclick="resetAndRetry()" data-i18n="resetBtn" class="btn-action text-xs">重新开始</button>
+                    <button onclick="goHome()" data-i18n="homeBtn" class="btn-action text-xs bg-gray-100">返回首页</button>
+                </div>
+            </div>
+        </div>
     </div>
-    <button class="btn-action text-xs" onclick="showMemory()">历史记忆</button>
-</header>
 
-<!-- HOME -->
-<div id="homePage" class="grid md:grid-cols-2 gap-8">
+    <!-- 历史记录弹窗 -->
+    <div id="historyModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+        <div class="bg-white p-10 max-w-2xl w-full max-h-[85vh] overflow-y-auto rounded-lg shadow-2xl relative">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h3 data-i18n="historyTitle" class="text-xl font-bold">我的历史记录</h3>
+                <button onclick="clearAllHistory()" data-i18n="clearAll" class="text-xs text-red-500 border border-red-500 px-2 py-1 rounded hover:bg-red-50">清空全部</button>
+            </div>
+            <div id="historyList" class="space-y-6"></div>
+            <button onclick="closeHistory()" data-i18n="closeBtn" class="mt-10 btn-action btn-black w-full">关闭</button>
+        </div>
+    </div>
 
-    <div class="p-10 border rounded">
-        <h2 class="text-xl font-bold">💔 WCCA</h2>
-        <p class="text-sm text-gray-500">要不要做这件事呢？</p>
-        <button onclick="enter('WCCA')" class="btn-action w-full mt-4">开始
+    <!-- 设置弹窗(API Key 配置) -->
+    <div id="settingsModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+        <div class="bg-white p-10 max-w-lg w-full rounded-lg shadow-2xl">
+            <h3 data-i18n="settingsTitle" class="text-xl font-bold mb-2">设置</h3>
+            <p data-i18n="settingsDesc" class="text-xs text-gray-500 mb-6 leading-relaxed">本工具需要 DeepSeek API Key 才能进行分析。你的 Key 只保存在本机浏览器中,不会上传到任何服务器。前往 platform.deepseek.com 可以申请。</p>
+            
+            <label data-i18n="apiKeyLabel" class="text-xs font-bold block mb-2">你的 API Key</label>
+            <input id="apiKeyInput" type="password" class="vibrant-input mb-2" placeholder="sk-...">
+            <p data-i18n="apiKeyHint" class="text-[10px] text-gray-400 mb-6">输入后点击保存,Key 仅保存在你自己的浏览器里。</p>
+
+            <label data-i18n="proxyLabel" class="text-xs font-bold block mb-2">中转地址(可选 / Optional)</label>
+            <input id="proxyUrlInput" type="text" class="vibrant-input mb-2" placeholder="https://your-worker.workers.dev">
+            <p data-i18n="proxyHint" class="text-[10px] text-gray-400 mb-6">如果你部署了 Cloudflare Worker 中转,在这里填入地址即可。填了中转地址后,API Key 可以留空。</p>
+
+            <div class="flex gap-3">
+                <button onclick="saveSettings()" data-i18n="saveSettings" class="btn-action btn-black flex-1">保存</button>
+                <button onclick="closeSettings()" data-i18n="cancelBtn" class="btn-action flex-1">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===================================================
+        // 国际化文本 / i18n strings
+        // ===================================================
+        const I18N = {
+            zh: {
+                subtitle: '理性决策辅助工具',
+                settingsBtn: '设置',
+                historyBtn: '历史记录',
+                moduleATitle: '我做了这件事会怎样?',
+                moduleADesc: '当你心里已经有一个想法,但拿不准要不要去做。把它写下来,看清它的好处、坏处和你可能忽略的风险。',
+                moduleABtn: '开始分析',
+                moduleBTitle: '我该选择哪一个?',
+                moduleBDesc: '当你有两个或多个选择难以取舍。列出你看重的因素,给每个选项打分,让数字告诉你哪个更适合。',
+                moduleBBtn: '开始分析',
+                backHome: '← 返回首页',
+                wccaPrompt: '把你正在考虑的事情写下来',
+                wccaHint: '越具体越好。比如"我在考虑下个月辞掉现在的工作去创业,手上有大约 8 万存款"——比"我要不要辞职"能得到更有用的分析。',
+                wccaPlaceholder: '在这里写下你的想法...',
+                wadmRulesTitle: '填写说明:',
+                wadmRules: '第一列写下你看重的因素(比如"收入"、"通勤时间"、"家人感受"),后面括号里填这个因素对你有多重要(1 到 10,越重要越高)。然后给每个选项在这个因素上的表现打分(1 到 10,越好越高)。',
+                factorCol: '考虑因素 (重要程度)',
+                addFactor: '添加因素',
+                addOption: '添加选项',
+                execBtn: '开始分析',
+                execLoading: '正在分析中...',
+                saveBtn: '保存记录',
+                shareReportBtn: '分享分析结果',
+                shareLinkBtn: '分享工具网址',
+                resetBtn: '重新开始',
+                homeBtn: '返回首页',
+                historyTitle: '我的历史记录',
+                clearAll: '清空全部',
+                closeBtn: '关闭',
+                noHistory: '还没有保存的记录。',
+                backToList: '← 返回列表',
+                analysisTarget: '分析对象',
+                settingsTitle: '设置',
+                settingsDesc: '本工具需要 DeepSeek API Key 才能进行分析。你的 Key 只保存在本机浏览器中,不会上传到任何服务器。前往 platform.deepseek.com 可以申请。',
+                apiKeyLabel: '你的 API Key',
+                apiKeyHint: '输入后点击保存,Key 仅保存在你自己的浏览器里。',
+                proxyLabel: '中转地址(可选)',
+                proxyHint: '如果你部署了 Cloudflare Worker 中转,在这里填入地址即可。填了中转地址后,API Key 可以留空。',
+                saveSettings: '保存',
+                cancelBtn: '取消',
+                needSetup: '请先在「设置」中填写 API Key 或中转地址。',
+                savedAlert: '已保存到历史记录。',
+                copiedAlert: '完整分析报告已复制,可以粘贴到任意地方分享。',
+                linkCopied: '工具网址已复制。',
+                confirmDelete: '确定删除这条记录吗?',
+                confirmClear: '确定要清空所有历史记录吗?',
+                connectionError: '连接出错。请检查 API Key 是否正确,或网络是否通畅。',
+                option: '选项',
+                newOption: '新选项',
+                factor: '因素',
+                vsLabel: '决策对比: ',
+                noTarget: '未填写内容',
+                reportHeader: '【Safe-Logic 分析报告】',
+                reportTarget: '分析对象:',
+                reportContent: '分析内容:',
+                reportFooter: '—— 来自 Safe-Logic 决策辅助工具',
+                shareToolText: 'Safe-Logic 决策辅助工具:',
+                shareToolHint: '帮你在面对重要选择时理清思路。',
+                // Prompt 模板
+                promptWCCA: (input) => `请用通俗易懂的中文,对下面这件事做一次理性分析:
+
+${input}
+
+要求:
+1. 先列出"好处",再列出"坏处",每一条都要具体,不要空话。
+2. 提醒用户可能忽略的风险或盲点。
+3. 最后用"【综合建议】"开头,给出一个清晰、温和、负责任的建议,但要尊重用户的最终选择权。
+4. 不要使用任何 Markdown 符号(比如 # * - 等),用自然语言表达。`,
+                promptWADM: (factors, opts) => `请基于以下加权评分数据进行理性分析:
+
+考虑因素与各选项得分:
+${JSON.stringify(factors, null, 2)}
+
+待选选项: ${opts.join('、')}
+
+要求:
+1. 先帮用户算出每个选项的加权总分(权重 × 得分,累加)。
+2. 用通俗的语言解释每个选项的优劣势。
+3. 用"【参考建议】"开头给出一个建议,说明哪个选项在数字上更优,但提醒用户最终决定权在自己。
+4. 不要使用任何 Markdown 符号(比如 # * - 等)。`,
+                badLabel: '坏处',
+                goodLabel: '好处',
+                summaryLabel: '【综合建议】'
+            },
+            en: {
+                subtitle: 'Rational Decision Assistant',
+                settingsBtn: 'Settings',
+                historyBtn: 'History',
+                moduleATitle: 'What if I do this?',
+                moduleADesc: 'When you already have an idea in mind but aren\'t sure whether to act on it. Write it down to see its upsides, downsides, and the risks you might be missing.',
+                moduleABtn: 'Start Analysis',
+                moduleBTitle: 'Which one should I choose?',
+                moduleBDesc: 'When you have two or more options and can\'t decide. List the factors that matter to you, score each option, and let the numbers help you see clearly.',
+                moduleBBtn: 'Start Analysis',
+                backHome: '← Back to Home',
+                wccaPrompt: 'Write down what you\'re considering',
+                wccaHint: 'The more specific, the better. For example, "I\'m thinking about quitting my job next month to start a business, with about $12k in savings" gives a more useful analysis than "should I quit my job."',
+                wccaPlaceholder: 'Write your thoughts here...',
+                wadmRulesTitle: 'How to fill in:',
+                wadmRules: 'In the first column, list the factors that matter to you (e.g. "income", "commute time", "family feelings"). In the parentheses, rate how important each factor is to you (1 to 10, higher = more important). Then score each option on each factor (1 to 10, higher = better).',
+                factorCol: 'Factor (Importance)',
+                addFactor: 'Add Factor',
+                addOption: 'Add Option',
+                execBtn: 'Start Analysis',
+                execLoading: 'Analyzing...',
+                saveBtn: 'Save Record',
+                shareReportBtn: 'Share Analysis',
+                shareLinkBtn: 'Share Tool Link',
+                resetBtn: 'Start Over',
+                homeBtn: 'Back to Home',
+                historyTitle: 'My History',
+                clearAll: 'Clear All',
+                closeBtn: 'Close',
+                noHistory: 'No saved records yet.',
+                backToList: '← Back to list',
+                analysisTarget: 'Subject',
+                settingsTitle: 'Settings',
+                settingsDesc: 'This tool requires a DeepSeek API key to run analyses. Your key is stored only in your browser, never uploaded anywhere. You can get one at platform.deepseek.com.',
+                apiKeyLabel: 'Your API Key',
+                apiKeyHint: 'Click save after entering. The key stays only in your own browser.',
+                proxyLabel: 'Proxy URL (Optional)',
+                proxyHint: 'If you\'ve deployed a Cloudflare Worker proxy, paste its URL here. With a proxy URL, you can leave the API key empty.',
+                saveSettings: 'Save',
+                cancelBtn: 'Cancel',
+                needSetup: 'Please configure your API key or proxy URL in Settings first.',
+                savedAlert: 'Saved to history.',
+                copiedAlert: 'Full analysis report copied. You can paste it anywhere to share.',
+                linkCopied: 'Tool URL copied.',
+                confirmDelete: 'Delete this record?',
+                confirmClear: 'Clear all history?',
+                connectionError: 'Connection error. Please check your API key or network.',
+                option: 'Option',
+                newOption: 'New Option',
+                factor: 'Factor',
+                vsLabel: 'Comparing: ',
+                noTarget: 'No content provided',
+                reportHeader: '[Safe-Logic Analysis Report]',
+                reportTarget: 'Subject:',
+                reportContent: 'Analysis:',
+                reportFooter: '— From Safe-Logic Decision Assistant',
+                shareToolText: 'Safe-Logic Decision Assistant:',
+                shareToolHint: 'A tool that helps you think clearly when facing important choices.',
+                promptWCCA: (input) => `Please give a rational analysis of the following situation in clear, plain English:
+
+${input}
+
+Requirements:
+1. First list the upsides, then the downsides. Each point should be specific, not vague.
+2. Point out risks or blind spots the user may have overlooked.
+3. End with a section starting "[Overall Suggestion]" giving a clear, calm, responsible recommendation while respecting that the final choice is the user's.
+4. Do not use any Markdown symbols (like # * - etc). Use natural language.`,
+                promptWADM: (factors, opts) => `Please give a rational analysis based on the following weighted scoring data:
+
+Factors and option scores:
+${JSON.stringify(factors, null, 2)}
+
+Options: ${opts.join(', ')}
+
+Requirements:
+1. Calculate the weighted total for each option (weight × score, summed).
+2. Explain each option's strengths and weaknesses in plain language.
+3. End with a section starting "[Suggested Direction]" indicating which option scores higher, while reminding the user the final decision is theirs.
+4. Do not use any Markdown symbols (like # * - etc).`,
+                badLabel: 'Downsides',
+                goodLabel: 'Upsides',
+                summaryLabel: '[Overall Suggestion]'
+            }
+        };
+
+        let currentLang = localStorage.getItem('safeLogicLang') || 'zh';
+        let currentModule = '';
+        let optionCount = 2;
+        let chartInstance = null;
+        let historyData = JSON.parse(localStorage.getItem('safeLogicHistory') || '[]');
+
+        // ===================================================
+        // 语言切换
+        // ===================================================
+        function applyLang() {
+            const t = I18N[currentLang];
+            document.documentElement.lang = currentLang === 'zh' ? 'zh-CN' : 'en';
+            document.body.classList.toggle('lang-en', currentLang === 'en');
+            document.getElementById('langLabel').innerText = currentLang === 'zh' ? 'EN' : '中';
+
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.innerText = t[key];
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (t[key]) el.placeholder = t[key];
+            });
+        }
+
+        function toggleLang() {
+            currentLang = currentLang === 'zh' ? 'en' : 'zh';
+            localStorage.setItem('safeLogicLang', currentLang);
+            applyLang();
+        }
+
+        // ===================================================
+        // 设置 / API Key 管理
+        // ===================================================
+        function getApiKey() { return localStorage.getItem('safeLogicApiKey') || ''; }
+        function getProxyUrl() { return localStorage.getItem('safeLogicProxyUrl') || ''; }
+
+        function showSettings() {
+            document.getElementById('apiKeyInput').value = getApiKey();
+            document.getElementById('proxyUrlInput').value = getProxyUrl();
+            document.getElementById('settingsModal').classList.remove('hidden');
+        }
+        function closeSettings() { document.getElementById('settingsModal').classList.add('hidden'); }
+
+        function saveSettings() {
+            const key = document.getElementById('apiKeyInput').value.trim();
+            const proxy = document.getElementById('proxyUrlInput').value.trim();
+            localStorage.setItem('safeLogicApiKey', key);
+            localStorage.setItem('safeLogicProxyUrl', proxy);
+            closeSettings();
+        }
+
+        // ===================================================
+        // 模块切换
+        // ===================================================
+        function enterModule(m) {
+            currentModule = m;
+            document.body.style.backgroundColor = "#fff";
+            document.getElementById('homePage').classList.add('hidden');
+            document.getElementById('appPage').classList.remove('hidden');
+            document.getElementById('wccaForm').classList.toggle('hidden', m !== 'WCCA');
+            document.getElementById('wadmForm').classList.toggle('hidden', m !== 'WADM');
+            document.getElementById('resultArea').classList.add('hidden');
+            if (m === 'WADM' && document.getElementById('tableBody').children.length === 0) {
+                for (let i = 0; i < 3; i++) addRow();
+            }
+        }
+
+        function goHome() {
+            document.getElementById('homePage').classList.remove('hidden');
+            document.getElementById('appPage').classList.add('hidden');
+        }
+
+        // ===================================================
+        // 表格操作
+        // ===================================================
+        function addRow() {
+            const t = I18N[currentLang];
+            const tr = document.createElement('tr');
+            let html = `<td><input type="text" placeholder="${t.factor}" class="bg-transparent outline-none w-2/3"> (<input type="number" value="5" min="1" max="10" class="bg-transparent w-8 text-center font-bold">)</td>`;
+            for (let i = 0; i < optionCount; i++) {
+                html += `<td><input type="number" value="5" min="1" max="10" class="bg-transparent w-full text-center"></td>`;
+            }
+            tr.innerHTML = html;
+            document.getElementById('tableBody').appendChild(tr);
+        }
+
+        function addOption() {
+            const t = I18N[currentLang];
+            optionCount++;
+            const th = document.createElement('th');
+            th.innerHTML = `<input class="editable-header" value="${t.newOption} ${optionCount}">`;
+            document.getElementById('tableHeader').appendChild(th);
+            Array.from(document.getElementById('tableBody').children).forEach(row => {
+                const td = document.createElement('td');
+                td.innerHTML = `<input type="number" value="5" min="1" max="10" class="bg-transparent w-full text-center">`;
+                row.appendChild(td);
+            });
+        }
+
+        // ===================================================
+        // 执行分析
+        // ===================================================
+        async function execute() {
+            const t = I18N[currentLang];
+            const apiKey = getApiKey();
+            const proxyUrl = getProxyUrl();
+
+            // 检查配置
+            if (!apiKey && !proxyUrl) {
+                alert(t.needSetup);
+                showSettings();
+                return;
+            }
+
+            const btn = document.getElementById('execBtn');
+            const resContent = document.getElementById('resultContent');
+            const resArea = document.getElementById('resultArea');
+            const originalBtnText = btn.innerText;
+            btn.innerText = t.execLoading;
+            btn.disabled = true;
+
+            let prompt = "";
+            let chartData = null;
+
+            if (currentModule === 'WCCA') {
+                const userInput = document.getElementById('wccaInput').value.trim();
+                if (!userInput) {
+                    btn.innerText = originalBtnText;
+                    btn.disabled = false;
+                    return;
+                }
+                prompt = t.promptWCCA(userInput);
+            } else {
+                const rows = Array.from(document.getElementById('tableBody').children);
+                const opts = Array.from(document.querySelectorAll('.editable-header')).map(el => el.value);
+                const factors = rows.map(r => {
+                    const inputs = r.querySelectorAll('input');
+                    return {
+                        name: inputs[0].value || t.factor,
+                        weight: parseInt(inputs[1].value) || 5,
+                        scores: Array.from(inputs).slice(2).map(i => parseInt(i.value) || 5)
+                    };
+                });
+                chartData = {
+                    labels: factors.map(f => f.name),
+                    datasets: opts.map((name, i) => ({
+                        label: name,
+                        data: factors.map(f => f.scores[i]),
+                        borderColor: ['#000', '#666', '#aaa', '#444', '#888'][i % 5],
+                        backgroundColor: 'rgba(0,0,0,0.03)'
+                    }))
+                };
+                prompt = t.promptWADM(factors, opts);
+            }
+
+            try {
+                // 优先使用中转地址,否则直连(Key 在前端)
+                const endpoint = proxyUrl || "https://api.deepseek.com/chat/completions";
+                const headers = { "Content-Type": "application/json" };
+                if (!proxyUrl && apiKey) {
+                    headers["Authorization"] = `Bearer ${apiKey}`;
+                }
+
+                const response = await fetch(endpoint, {
+                    method: "POST",
+                    headers: headers,
+                    body: JSON.stringify({
+                        model: "deepseek-chat",
+                        messages: [{ role: "user", content: prompt }],
+                        temperature: 0.3
+                    })
+                });
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const data = await response.json();
+                let rawText = data.choices[0].message.content.replace(/[#*+_^]/g, '');
+
+                if (currentModule === 'WCCA') {
+                    // 用语言相关的标签做高亮
+                    const badRegex = new RegExp(t.badLabel, 'g');
+                    const goodRegex = new RegExp(t.goodLabel, 'g');
+                    const summaryEscaped = t.summaryLabel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const summaryRegex = new RegExp(summaryEscaped + '([\\s\\S]*)', 'g');
+
+                    let formatted = rawText
+                        .replace(badRegex, `<span class="wcca-bad">${t.badLabel}</span>`)
+                        .replace(goodRegex, `<span class="wcca-good">${t.goodLabel}</span>`)
+                        .replace(summaryRegex, `<div class="wcca-summary">${t.summaryLabel}$1</div>`);
+                    resContent.innerHTML = formatted;
+                    document.getElementById('chartSection').classList.add('hidden');
+                } else {
+                    resContent.innerText = rawText;
+                    if (chartData) renderChart(chartData);
+                }
+                resArea.classList.remove('hidden');
+                resArea.scrollIntoView({ behavior: 'smooth' });
+            } catch (e) {
+                console.error(e);
+                resContent.innerText = t.connectionError;
+                document.getElementById('chartSection').classList.add('hidden');
+                resArea.classList.remove('hidden');
+            } finally {
+                btn.innerText = originalBtnText;
+                btn.disabled = false;
+            }
+        }
+
+        function renderChart(data) {
+            const ctx = document.getElementById('decisionChart').getContext('2d');
+            document.getElementById('chartSection').classList.remove('hidden');
+            if (chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: data,
+                options: {
+                    scales: { r: { beginAtZero: true, max: 10, ticks: { display: false } } },
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+
+        function resetAndRetry() {
+            if (currentModule === 'WCCA') {
+                document.getElementById('wccaInput').value = "";
+            } else {
+                document.getElementById('tableBody').innerHTML = "";
+                for (let i = 0; i < 3; i++) addRow();
+            }
+            document.getElementById('resultArea').classList.add('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ===================================================
+        // 历史记录
+        // ===================================================
+        // 安全提示:历史内容用 textContent 渲染,避免 XSS。
+        // 老版本用 innerHTML 直接插 AI 返回内容,有潜在风险。
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function saveToHistory() {
+            const t = I18N[currentLang];
+            let userQuestion = currentModule === 'WCCA'
+                ? document.getElementById('wccaInput').value
+                : t.vsLabel + Array.from(document.querySelectorAll('.editable-header')).map(el => el.value).join(' / ');
+
+            historyData.unshift({
+                id: Date.now(),
+                date: new Date().toLocaleString(),
+                module: currentModule,
+                lang: currentLang,
+                question: userQuestion || t.noTarget,
+                content: document.getElementById('resultContent').innerHTML  // 这是 AI 输出经过我们处理后的 HTML
+            });
+            localStorage.setItem('safeLogicHistory', JSON.stringify(historyData));
+            alert(t.savedAlert);
+        }
+
+        function showHistory() {
+            const t = I18N[currentLang];
+            const list = document.getElementById('historyList');
+            if (historyData.length === 0) {
+                list.innerHTML = `<p class='text-center text-gray-400'>${escapeHtml(t.noHistory)}</p>`;
+            } else {
+                list.innerHTML = historyData.map((h, i) => {
+                    const moduleLabel = h.module === 'WCCA'
+                        ? (currentLang === 'zh' ? '会怎样' : 'What if')
+                        : (currentLang === 'zh' ? '怎么选' : 'Which one');
+                    return `
+                    <div class="p-5 border border-gray-100 rounded hover:bg-gray-50 transition-all relative group">
+                        <div onclick="viewDetail(${i})">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="text-[10px] bg-black text-white px-2 py-0.5 rounded">${escapeHtml(moduleLabel)}</span>
+                                <span class="text-[10px] text-gray-400">${escapeHtml(h.date)}</span>
+                            </div>
+                            <p class="font-bold text-sm truncate pr-8">${escapeHtml(h.question)}</p>
+                        </div>
+                        <button onclick="deleteSingle(event, ${h.id})" class="absolute right-4 top-1/2 -translate-y-1/2 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity p-2">✕</button>
+                    </div>`;
+                }).join('');
+            }
+            document.getElementById('historyModal').classList.remove('hidden');
+        }
+
+        function deleteSingle(ev, id) {
+            ev.stopPropagation();
+            const t = I18N[currentLang];
+            if (confirm(t.confirmDelete)) {
+                historyData = historyData.filter(item => item.id !== id);
+                localStorage.setItem('safeLogicHistory', JSON.stringify(historyData));
+                showHistory();
+            }
+        }
+
+        function clearAllHistory() {
+            const t = I18N[currentLang];
+            if (confirm(t.confirmClear)) {
+                historyData = [];
+                localStorage.removeItem('safeLogicHistory');
+                showHistory();
+            }
+        }
+
+        function viewDetail(index) {
+            const t = I18N[currentLang];
+            const item = historyData[index];
+            // 注意:item.content 是我们自己生成的 HTML(经过符号过滤),不是任意用户输入
+            document.getElementById('historyList').innerHTML = `
+                <button onclick="showHistory()" class="mb-6 text-xs font-bold underline">${escapeHtml(t.backToList)}</button>
+                <div class="mb-6">
+                    <p class="text-[10px] text-gray-400 mb-1">${escapeHtml(t.analysisTarget)}</p>
+                    <p class="font-bold border-l-2 border-black pl-3">${escapeHtml(item.question)}</p>
+                </div>
+                <div class="serif leading-loose text-sm p-4 bg-gray-50 rounded">${item.content}</div>
+            `;
+        }
+
+        function copyFullReport() {
+            const t = I18N[currentLang];
+            let userQuestion = currentModule === 'WCCA'
+                ? document.getElementById('wccaInput').value
+                : t.vsLabel + Array.from(document.querySelectorAll('.editable-header')).map(el => el.value).join(' / ');
+            const resultText = document.getElementById('resultContent').innerText;
+            const fullReport = `${t.reportHeader}\n\n${t.reportTarget}\n${userQuestion}\n\n${t.reportContent}\n${resultText}\n\n${t.reportFooter}`;
+            navigator.clipboard.writeText(fullReport).then(() => alert(t.copiedAlert));
+        }
+
+        function copyToolLink() {
+            const t = I18N[currentLang];
+            const url = window.location.href;
+            navigator.clipboard.writeText(`${t.shareToolText} ${url}\n\n${t.shareToolHint}`).then(() => alert(t.linkCopied));
+        }
+
+        function closeHistory() { document.getElementById('historyModal').classList.add('hidden'); }
+
+        // ===================================================
+        // 初始化
+        // ===================================================
+        applyLang();
+
+        // 首次访问时,如果没有任何配置,提示用户去设置
+        if (!getApiKey() && !getProxyUrl()) {
+            // 等首页渲染完再弹设置,体验更好
+            setTimeout(() => {
+                if (confirm(currentLang === 'zh'
+                    ? '欢迎使用 Safe-Logic。本工具需要先在「设置」中配置 API Key 才能使用。是否现在配置?'
+                    : 'Welcome to Safe-Logic. You need to configure your API key in Settings before using. Configure now?')) {
+                    showSettings();
+                }
+            }, 500);
+        }
+    </script>
+
+    <!--
+    ===================================================================
+     CLOUDFLARE WORKER 中转代码模板 (推荐方案 / Recommended Setup)
+    ===================================================================
+     如果你想让所有用户共享同一个 API Key,把下面的代码部署到
+     Cloudflare Workers,然后让用户在「设置」中只填中转地址即可。
+     这样 API Key 永远不会暴露在前端。
+
+     部署步骤:
+     1. 注册 Cloudflare 账号(免费)
+     2. 进入 Workers & Pages,创建一个新 Worker
+     3. 把下面的 JS 代码贴进去
+     4. 在 Worker 的 Settings → Variables 里添加环境变量:
+        DEEPSEEK_API_KEY = sk-你的真实key
+     5. 部署后会得到一个 https://xxx.workers.dev 地址
+     6. 在本工具的「设置」中,把这个地址填到「中转地址」字段
+     7. API Key 字段可以留空
+
+     ---------------- Worker 代码开始 ----------------
+
+     export default {
+       async fetch(request, env) {
+         // 跨域支持
+         const corsHeaders = {
+           "Access-Control-Allow-Origin": "*",
+           "Access-Control-Allow-Methods": "POST, OPTIONS",
+           "Access-Control-Allow-Headers": "Content-Type"
+         };
+         if (request.method === "OPTIONS") {
+           return new Response(null, { headers: corsHeaders });
+         }
+         if (request.method !== "POST") {
+           return new Response("Method not allowed", { status: 405 });
+         }
+
+         // 简单频率限制(按 IP,可选)
+         // 如果想更严格,可以用 Cloudflare KV 存储计数
+
+         const body = await request.text();
+         const upstream = await fetch("https://api.deepseek.com/chat/completions", {
+           method: "POST",
+           headers: {
+             "Content-Type": "application/json",
+             "Authorization": `Bearer ${env.DEEPSEEK_API_KEY}`
+           },
+           body: body
+         });
+
+         const data = await upstream.text();
+         return new Response(data, {
+           status: upstream.status,
+           headers: { ...corsHeaders, "Content-Type": "application/json" }
+         });
+       }
+     };
+
+     ---------------- Worker 代码结束 ----------------
+
+     安全提醒:
+     - 上面的 Worker 不带任何鉴权,理论上任何人知道地址都能用你的额度。
+       如果想防滥用,可以加一个简单的 token 校验(前端发请求时带上,
+       Worker 校验后再转发),或者用 Cloudflare 自带的速率限制。
+     - 也可以在 Worker 里限制只接受来自你自己域名的请求 (Origin 校验)。
+    ===================================================================
+    -->
+</body>
+</html>
